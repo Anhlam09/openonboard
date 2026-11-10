@@ -1,0 +1,17 @@
+[project]
+name = "openonboard"
+version = "0.2.0"
+description = "Open-source business account opening (KYB) built on the Middesk API"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = ["E501"]  # ruff format handles line length
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

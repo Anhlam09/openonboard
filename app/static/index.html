@@ -1,0 +1,1584 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OpenOnboard</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFFFFF; --surface: #F6F7F9; --card: #FFFFFF; --frame: #EEF0F3; --border: #E1E4E9; --border-strong: #C9CDD4;
+    --text: #111316; --muted: #5F6570; --faint: #8A909B;
+    --accent: #5458E0; --accent-hover: #4347CC; --on-accent: #FFFFFF;
+    --go: #1E8E4E; --stop: #C93636;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111214; --surface: #17181B; --card: #17181B; --frame: #1F2024; --border: #2C2E33; --border-strong: #42454C;
+      --text: #F3F4F6; --muted: #A2A6AE; --faint: #7C818B;
+      --accent: #6468F0; --accent-hover: #7A7EF4; --go: #3DBB72; --stop: #EF6B6B; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111214; --surface: #17181B; --card: #17181B; --frame: #1F2024; --border: #2C2E33; --border-strong: #42454C;
+    --text: #F3F4F6; --muted: #A2A6AE; --faint: #7C818B;
+    --accent: #6468F0; --accent-hover: #7A7EF4; --go: #3DBB72; --stop: #EF6B6B; color-scheme: dark;
+  }
+  :root { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.55 "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  svg.i { width: 1rem; height: 1rem; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  header { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; padding: 1rem clamp(1rem, 4vw, 3rem);
+    border-bottom: 1px solid var(--border); }
+  .brand { font-weight: 700; font-size: 1.15rem; letter-spacing: -0.02em; display: flex; align-items: center; gap: .5rem; }
+  .brand b { width: .7rem; height: .7rem; border-radius: 3px; background: var(--accent); display: inline-block; }
+  nav { display: flex; gap: .25rem; }
+  nav button { background: none; border: 0; padding: .45rem .8rem; color: var(--muted); border-radius: 8px; cursor: pointer; }
+  nav button:hover { color: var(--text); }
+  nav button[aria-current="page"] { color: var(--text); background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); font-weight: 500; }
+  .hdr-right { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
+  #demo-banner { background: var(--surface); color: var(--text); border-bottom: 1px solid var(--border); padding: .4rem 1.25rem; font-size: .88rem; text-align: center; }
+  #demo-banner[hidden] { display: none; }
+  #demo-banner.strong { font-weight: 600; border-bottom-width: 2px; }
+  .site-footer { max-width: 72rem; margin: 2.5rem auto 1.5rem; padding: 1rem 1.25rem 0; border-top: 1px solid var(--border); color: var(--muted); font-size: .85rem; line-height: 1.5; }
+  .site-footer summary { cursor: pointer; color: var(--text); margin-top: .4rem; }
+  .site-footer details p { margin: .5rem 0; }
+  #mode { font-size: .8rem; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: .2rem .7rem; }
+  #theme { background: none; border: 1px solid var(--border); border-radius: 8px; padding: .35rem; cursor: pointer; color: var(--muted); display: flex; }
+  #theme:hover { color: var(--text); border-color: var(--border-strong); }
+
+  main { padding: 2.5rem clamp(1rem, 4vw, 3rem) 4rem; max-width: 1360px; }
+  h1 { font-size: clamp(2.2rem, 5.5vw, 4rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 700; margin: 0 0 1rem; max-width: 18ch; }
+  .lede { color: var(--muted); font-size: 1.1rem; margin: 0 0 2.5rem; max-width: 58ch; }
+  h2 { font-size: 1.75rem; letter-spacing: -0.025em; font-weight: 700; margin: 0 0 .35rem; }
+  h3 { font-size: 1.05rem; font-weight: 700; margin: 0 0 .9rem; }
+
+  .frame { border: 1px solid var(--border); border-radius: 18px; padding: 6px; background: var(--frame); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 13px; padding: clamp(1.25rem, 3vw, 2rem); }
+  .start { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; max-width: 1200px; }
+  .choice { text-align: left; cursor: pointer; display: grid; gap: .6rem; align-content: start; font: inherit; color: inherit;
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: clamp(1.4rem, 3vw, 2rem); }
+  .choice:hover { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .choice[aria-checked="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--card)); }
+  .choice:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .start-actions { margin-top: 1.25rem; }
+  .owner-helper { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; margin: .5rem 0 1rem; }
+  .choice .ic { width: 3rem; height: 3rem; border-radius: 12px; display: grid; place-items: center;
+    background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+  .choice .ic svg { width: 1.5rem; height: 1.5rem; }
+  .choice strong { font-size: 1.3rem; letter-spacing: -0.01em; }
+  .choice span.d { color: var(--muted); }
+  .choice ul { margin: .25rem 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: .4rem; }
+  .choice li { font-size: .82rem; border: 1px solid var(--border); border-radius: 999px; padding: .15rem .65rem; color: var(--muted); }
+  .choice .go { color: var(--accent); font-weight: 500; margin-top: .4rem; }
+  .apply-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 1.5rem; align-items: start; }
+
+  .samples { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: 1.5rem; }
+  .samples span { color: var(--muted); font-size: .9rem; margin-right: .25rem; }
+  .chip { background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: .3rem .85rem; font-size: .88rem; color: var(--muted); cursor: pointer; }
+  .chip:hover { color: var(--text); border-color: var(--border-strong); }
+  .filter { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 1rem; }
+  .filter button { background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: .3rem .65rem; font-size: .85rem; white-space: nowrap; color: var(--muted); cursor: pointer; }
+  .filter button:hover { color: var(--text); border-color: var(--border-strong); }
+  .filter button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+  form { display: grid; gap: 1.1rem; }
+  .row { display: grid; gap: 1rem; grid-template-columns: 2fr 1fr 1fr; }
+  label { display: grid; gap: .35rem; font-size: .9rem; font-weight: 500; }
+  label > .tag { justify-self: start; }
+  label.check { display: flex; align-items: center; gap: .5rem; }
+  label.check input { width: auto; }
+  label small { font-weight: 400; color: var(--faint); }
+  input, select, textarea { padding: .7rem .8rem; border: 1px solid var(--border); border-radius: 9px; background: var(--bg); width: 100%; }
+  input::placeholder, textarea::placeholder { color: var(--faint); }
+  input:hover, select:hover, textarea:hover { border-color: var(--border-strong); }
+  textarea { min-height: 5rem; resize: vertical; }
+  fieldset { border: 1px solid var(--border); border-radius: 12px; padding: 1rem; display: grid; gap: .75rem; margin: 0; }
+  legend { font-weight: 500; font-size: .9rem; padding: 0 .35rem; }
+  .terms { max-height: 12rem; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: .75rem; font-size: .9rem; }
+  .terms:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  .terms h4 { margin: .5rem 0 .15rem; font-size: .92rem; }
+  .terms p { margin: 0 0 .5rem; color: var(--muted); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .docrow { display: grid; grid-template-columns: 1fr 2fr auto; gap: .5rem; align-items: end; margin-bottom: .5rem; }
+  .stack { display: grid; gap: 1.1rem; } .stack[hidden] { display: none; }
+  .person { display: grid; gap: .75rem; }
+  .person-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+  .radios { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
+  .radios label { display: flex; align-items: center; gap: .5rem; font-weight: 400; }
+  .radios input { width: auto; }
+  .kind { font-size: .75rem; border: 1px solid var(--border); border-radius: 999px; padding: 0 .5rem; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; margin: 0 0 1rem; padding: 0; }
+  .staff-chip { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid var(--border); border-radius: 999px; padding: .15rem .25rem .15rem .75rem; background: var(--surface); font-size: .9rem; }
+  .staff-chip button { background: none; border: 0; border-radius: 999px; cursor: pointer; color: var(--muted); padding: .15rem .45rem; font-size: 1rem; line-height: 1; }
+  .staff-chip button:hover { color: var(--stop); }
+  .staff-add { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; }
+  .staff-add label { flex: 1; min-width: 12rem; }
+  .assign-filter { margin: 0 0 1rem; }
+  .maint-pick { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(14rem, 2fr); gap: 1rem; margin: 0 0 1.5rem; max-width: 46rem; }
+  .mcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: .75rem; list-style: none; margin: 0 0 1.5rem; padding: 0; }
+  .mcard { width: 100%; height: 100%; text-align: left; display: grid; gap: .3rem; align-content: start; background: var(--card); border: 1px solid var(--border); border-radius: 11px; padding: .9rem 1rem; cursor: pointer; }
+  .mcard:hover { border-color: var(--border-strong); }
+  .mcard[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .mcard svg.i { width: 1.35rem; height: 1.35rem; color: var(--accent); }
+  .mcard b { font-weight: 500; }
+  .mcard span { color: var(--muted); font-size: .88rem; }
+  .mreq { display: grid; gap: .6rem; margin-bottom: .75rem; }
+  .mreq-head { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; justify-content: space-between; }
+  .mreq-head b { font-weight: 500; }
+  .ben-row { display: grid; grid-template-columns: 2fr 1.5fr 1fr auto; gap: .5rem; align-items: end; }
+  @media (max-width: 860px) { .maint-pick { grid-template-columns: minmax(0, 1fr); } .ben-row { grid-template-columns: minmax(0, 1fr); } }
+  .owner { display: grid; grid-template-columns: 2fr 1fr 1fr auto auto; /* name, title, %, control, remove */ gap: .5rem; align-items: end; }
+
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; max-width: 100%; }
+  .table-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  table.compare { border-collapse: collapse; width: 100%; min-width: 34rem; font-size: .92rem; }
+  table.compare caption { text-align: left; padding: .75rem 1rem; color: var(--muted); caption-side: top; }
+  table.compare th, table.compare td { text-align: left; vertical-align: top; padding: .65rem 1rem; border-top: 1px solid var(--border); }
+  table.compare thead th { vertical-align: bottom; background: var(--surface); }
+  table.compare tbody th { font-weight: 500; color: var(--muted); white-space: nowrap; }
+  table.compare td { color: var(--text); min-width: 9rem; }
+  table.compare label.check { font-weight: 700; }
+  .opts { display: grid; gap: .75rem; }
+  .opts .row { grid-template-columns: 1fr 1fr; }
+
+  .btn { font-weight: 500; padding: .7rem 1.2rem; border-radius: 9px; cursor: pointer; border: 1px solid transparent; justify-self: start; display: inline-flex; align-items: center; gap: .45rem; }
+  .btn.primary { background: var(--accent); color: var(--on-accent); }
+  .btn.primary:hover { background: var(--accent-hover); }
+  .btn.ghost { background: transparent; border-color: var(--border); color: var(--text); }
+  .btn.ghost:hover { border-color: var(--border-strong); }
+  .btn.danger { background: transparent; border-color: var(--stop); color: var(--stop); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .error { color: var(--stop); font-weight: 500; white-space: pre-line; margin: 0; }
+  .error:empty { display: none; }
+
+  .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+  .checks li { display: grid; grid-template-columns: auto 1fr; gap: .2rem .8rem; }
+  .checks .ic { grid-row: span 2; width: 2.1rem; height: 2.1rem; border-radius: 50%; display: grid; place-items: center;
+    background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+  .checks strong { font-weight: 500; } .checks span { color: var(--muted); font-size: .92rem; }
+
+  .queue { display: grid; grid-template-columns: minmax(285px, 1fr) minmax(0, 3.4fr); gap: 1.5rem; align-items: start; }
+  .list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+  .list button { width: 100%; text-align: left; background: var(--card); border: 1px solid var(--border); border-radius: 11px;
+    padding: .8rem .9rem; cursor: pointer; display: grid; gap: .15rem; }
+  .list button:hover { border-color: var(--border-strong); }
+  .list button[aria-selected="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .list .name { font-weight: 500; }
+  .list .meta { font-size: .82rem; color: var(--muted); display: flex; align-items: center; gap: .4rem; }
+  .pip { width: .5rem; height: .5rem; border-radius: 50%; background: var(--faint); }
+  .pip.go { background: #22A04B; } .pip.caution { background: #D99A0B; } .pip.stop { background: #DC3B3B; }
+  .empty { color: var(--muted); }
+
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  .facts dt { font-size: .8rem; color: var(--muted); margin-bottom: .15rem; }
+  .facts dd { margin: 0; font-weight: 700; font-size: 1.02rem; overflow-wrap: anywhere; }
+  .facts dd.ref { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 500; }
+
+  /* Status banner: light tint, colored left bar, round icon, action on the right (same tints in both themes) */
+  .banner { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; border-left: 6px solid; border-radius: 4px; flex-wrap: wrap; }
+  .banner .badge { width: 2.75rem; height: 2.75rem; border-radius: 50%; display: grid; place-items: center; flex: none; }
+  .banner .badge svg { width: 1.35rem; height: 1.35rem; }
+  .banner .txt { flex: 1; min-width: 12rem; }
+  .banner strong { display: block; font-size: 1.08rem; font-weight: 700; }
+  .banner span { display: block; font-size: .92rem; }
+  .b-go { background: #E7F5EC; color: #134A2A; border-color: #22A04B; } .b-go .badge { background: #C7EBD3; color: #1B7A3D; }
+  .b-caution { background: #FBF1DA; color: #5C3F06; border-color: #D99A0B; } .b-caution .badge { background: #F5DFAA; color: #8A5E07; }
+  .b-stop { background: #FBE7E7; color: #6E1A1A; border-color: #DC3B3B; } .b-stop .badge { background: #F5C6C6; color: #B02A2A; }
+  .b-wait { background: #E9EAFC; color: #1F1F55; border-color: #5458E0; } .b-wait .badge { background: #CDCFF7; color: #4347CC; }
+  .banner .btn.primary { background: #5458E0; color: #fff; } .banner .btn.primary:hover { background: #4347CC; }
+
+  .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--border); margin: 1.5rem 0 1.5rem; overflow-x: auto; }
+  .tabs { scrollbar-width: thin; }
+  .tabs button { flex: none; background: none; border: 0; border-bottom: 2px solid transparent; padding: .65rem .9rem; color: var(--muted); cursor: pointer; white-space: nowrap; margin-bottom: -1px; }
+  .tabs button:hover { color: var(--text); }
+  .tabs button[aria-selected="true"] { color: var(--text); font-weight: 700; border-bottom-color: var(--accent); }
+  .tabs .count { font-size: .75rem; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 0 .45rem; margin-left: .35rem; font-weight: 500; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.75rem; }
+  .box { border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; }
+  .lines { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; font-size: .9rem; }
+  .lines li { display: flex; gap: .6rem; align-items: center; color: var(--muted); }
+  .lines li b { color: var(--text); font-weight: 500; }
+
+  .ledger { list-style: none; margin: 0 0 1.5rem; padding: 0; border: 1px solid var(--border); border-radius: 10px; }
+  .ledger li { display: grid; grid-template-columns: 9.5rem 1fr auto; gap: 1rem; padding: .85rem 1.1rem; align-items: center; }
+  .ledger li + li { border-top: 1px solid var(--border); }
+  .ledger .lbl { font-weight: 500; }
+  .ledger .msg { color: var(--muted); font-size: .92rem; }
+  .tag { font-size: .78rem; font-weight: 500; border-radius: 999px; padding: .15rem .6rem; white-space: nowrap; }
+  .t-success { background: #E7F5EC; color: #134A2A; } .t-warning { background: #FBF1DA; color: #5C3F06; } .t-failure { background: #FBE7E7; color: #6E1A1A; }
+  .reasons { margin: 0 0 1.5rem; padding-left: 1.2rem; color: var(--muted); } .reasons li { margin: .25rem 0; }
+  .note { border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 4px; padding: .8rem 1rem; margin: 0 0 1.5rem; color: var(--muted); }
+  .note b { color: var(--text); font-weight: 500; }
+  .actions { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-top: 1rem; }
+
+  @media (max-width: 860px) { .apply-grid, .queue { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 640px) { .row, .owner, .docrow, .opts .row { grid-template-columns: 1fr; }
+    .ledger li { grid-template-columns: 1fr auto; } .ledger .msg { grid-column: 1 / -1; } .hdr-right { margin-left: 0; }
+    .tabs button { padding: .6rem .55rem; } .card { padding: 1.1rem; } }
+</style>
+</head>
+<body>
+<div id="demo-banner" role="note" hidden>Demo mode: checks, signatures and accounts are simulated. Independent experimental project. Not for real-world account opening.</div>
+<header>
+  <span class="brand"><b aria-hidden="true"></b>OpenOnboard</span>
+  <nav aria-label="Views">
+    <button id="tab-apply" aria-current="page">Open an account</button>
+    <button id="tab-queue">Review queue</button>
+    <button id="tab-maint">Account maintenance</button>
+  </nav>
+  <div class="hdr-right">
+    <span id="mode"></span>
+    <button id="theme" aria-label="Switch light or dark theme" title="Switch theme">
+      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section id="view-apply">
+    <h1 id="apply-h1">Open a bank account in minutes</h1>
+    <p class="lede" id="apply-lede">Choose the kind of account you need. A person on our team reviews every application.</p>
+    <div class="start" id="start" role="radiogroup" aria-label="What would you like to open?">
+      <button type="button" class="choice" data-start="business" role="radio" aria-checked="false">
+        <span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/></svg></span>
+        <strong>Business accounts</strong>
+        <span class="d">For companies, nonprofits and sole proprietors. We verify the business and the people who own it.</span>
+        <ul aria-label="Business accounts"><li>Checking</li><li>Savings</li><li>Certificates</li></ul>
+        <span class="go" aria-hidden="true">Select</span>
+      </button>
+      <button type="button" class="choice" data-start="personal" role="radio" aria-checked="false">
+        <span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span>
+        <strong>Personal accounts</strong>
+        <span class="d">For you, on your own or with up to 3 joint owners. We verify each person who applies.</span>
+        <ul aria-label="Personal accounts"><li>Checking</li><li>Savings</li><li>Certificates</li></ul>
+        <span class="go" aria-hidden="true">Select</span>
+      </button>
+      <button type="button" class="choice" data-start="both" role="radio" aria-checked="false">
+        <span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V10l6-4 6 4v11"/><path d="M7 21v-4h4v4"/><circle cx="18" cy="9" r="2.5"/><path d="M14.5 17c.6-2 1.9-3 3.5-3s2.9 1 3.5 3"/></svg></span>
+        <strong>Business and personal</strong>
+        <span class="d">For business owners who also want their own accounts. One application and one review opens both.</span>
+        <ul aria-label="Business and personal accounts"><li>Business accounts</li><li>Personal accounts</li></ul>
+        <span class="go" aria-hidden="true">Select</span>
+      </button>
+    </div>
+    <div class="start-actions" id="start-actions">
+      <p class="empty" id="start-hint" role="status" style="margin:0 0 .75rem">Choose one.</p>
+      <button type="button" class="btn primary" id="start-continue" disabled>Continue</button>
+    </div>
+    <div class="apply-grid" id="apply-grid" hidden>
+      <div class="frame"><div class="card">
+        <button type="button" class="btn ghost" id="change-type" style="margin-bottom:1rem">← Change account type</button>
+        <h2 id="apply-title" tabindex="-1">Let’s set up your business account</h2>
+        <p class="empty" id="apply-intro" style="margin:0 0 1.25rem">It takes about two minutes.</p>
+        <div class="samples">
+          <span>Try sample data</span>
+          <button class="chip" data-for="business" data-sample="clean">Clean business</button>
+          <button class="chip" data-for="business" data-sample="unregistered">Not registered</button>
+          <button class="chip" data-for="business" data-sample="watchlist">Sanctions hit</button>
+          <button class="chip" data-for="business" data-sample="notin">No EIN</button>
+          <button class="chip" data-for="business" data-sample="ownerid">Owner ID issue</button>
+          <button class="chip" data-for="personal" data-sample="p_clean">Personal: clean</button>
+          <button class="chip" data-for="personal" data-sample="p_joint">Personal: joint</button>
+          <button class="chip" data-for="personal" data-sample="p_iderror">Personal: ID issue</button>
+          <button class="chip" data-for="both" data-sample="b_both">Business owner: both</button>
+        </div>
+        <form id="apply-form" novalidate>
+          <fieldset id="branch-box">
+            <legend>Opening this in a branch? <span class="tag t-warning">Sample staff</span></legend>
+            <label class="check"><input type="checkbox" name="in_branch"> Yes, a banker is helping the customer</label>
+            <div class="stack" id="branch-fields" hidden>
+              <label>Banker helping the customer <select name="created_by" required><option value="">Choose a banker</option></select></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Who is the account for?</legend>
+            <div class="radios">
+              <label><input type="radio" name="account_type" value="business" checked> Business</label>
+              <label><input type="radio" name="account_type" value="personal"> Personal</label>
+              <label><input type="radio" name="account_type" value="both"> Business and personal</label>
+            </div>
+          </fieldset>
+          <fieldset id="products-step">
+            <legend>Choose accounts <span class="tag t-warning">Sample terms</span></legend>
+            <p class="empty" style="margin:0" id="products-help">Pick one or more accounts to open (up to 4). These fees and rates are samples, not real offers.</p>
+            <div class="table-scroll" tabindex="0" role="region" aria-label="Account comparison, scrolls sideways on small screens">
+              <table class="compare" id="compare"></table>
+            </div>
+            <div class="table-scroll" id="compare2-wrap" tabindex="0" role="region" aria-label="Personal account comparison, scrolls sideways on small screens" hidden>
+              <table class="compare" id="compare2"></table>
+            </div>
+            <div id="product-options" class="stack"></div>
+          </fieldset>
+          <div class="stack" id="biz-fields">
+          <label>Legal business name <input name="business_name" required autocomplete="organization"></label>
+          <label>EIN <small>9 digits. Leave blank if you don’t have one yet.</small>
+            <input name="tin" inputmode="numeric" autocomplete="off" placeholder="12-3456789"></label>
+          <label>Street address <input name="address_line1" required autocomplete="address-line1" placeholder="88 Harvard Ave"></label>
+          <div class="row">
+            <label>City <input name="city" required autocomplete="address-level2"></label>
+            <label>State <input name="state" required maxlength="2" placeholder="MA" autocomplete="address-level1"></label>
+            <label>ZIP <input name="postal_code" required inputmode="numeric" placeholder="02134" autocomplete="postal-code"></label>
+          </div>
+          <label>Website <small>Optional</small><input name="website" type="url" placeholder="https://"></label>
+          <fieldset>
+            <legend>Owners and officers</legend>
+            <div id="owners"></div>
+            <button type="button" class="btn ghost" id="add-owner">Add a person</button>
+          </fieldset>
+          </div>
+          <div class="stack" id="personal-fields" hidden>
+            <fieldset>
+              <legend id="people-legend">Applicants</legend>
+              <p class="empty" style="margin:0">Add up to 4 people. The first person is the primary applicant. We only ask for the last 4 digits of each Social Security number.</p>
+              <div class="owner-helper" id="owner-helper" hidden>
+                <label>Start from an owner <select id="owner-pick"></select></label>
+                <button type="button" class="btn ghost" id="owner-add">Use this owner’s name</button>
+              </div>
+              <div id="people"></div>
+              <button type="button" class="btn ghost" id="add-person">Add a joint applicant</button>
+            </fieldset>
+          </div>
+          <fieldset>
+            <legend>Supporting documents <small>Optional</small></legend>
+            <p class="empty" style="margin:0">PDF, PNG or JPEG, up to 10 MB each. For example your formation papers or EIN letter.</p>
+            <div id="docs"></div>
+            <button type="button" class="btn ghost" id="add-doc">Add a document</button>
+          </fieldset>
+          <fieldset>
+            <legend>Review and sign <span class="tag t-warning">Simulated</span></legend>
+            <p class="empty" style="margin:0">Sample text. The bank's legal team must replace it before real use.</p>
+            <div class="terms" id="terms" tabindex="0" role="region" aria-label="Account disclosures (sample text)">Loading the disclosures...</div>
+            <label class="check"><input name="disclosures_accepted" type="checkbox" required> I have read and agree to the account disclosures</label>
+            <label>Type your full legal name to sign <span class="tag t-warning">Simulated</span>
+              <input name="signature_name" required minlength="2" maxlength="120" autocomplete="name"></label>
+            <small>This is a typed name for demos. It is not a legally binding e-signature provider.</small>
+          </fieldset>
+          <p class="error" id="apply-error" role="alert"></p>
+          <p class="note" id="apply-done" role="status" hidden></p>
+          <button class="btn primary" type="submit">Submit application</button>
+        </form>
+      </div></div>
+      <div class="card">
+        <h3>What we check</h3>
+        <h4 id="checks-h-business" style="margin:0 0 .5rem" hidden>For the business</h4>
+        <ul class="checks" id="checks-business">
+          <li><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/></svg></span><strong>State registration</strong><span>Your business is registered and active.</span></li>
+          <li><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h6M7 14h4"/></svg></span><strong>IRS EIN match</strong><span>Your EIN matches your legal name.</span></li>
+          <li><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/></svg></span><strong>Sanctions screening</strong><span>Checked against government watchlists.</span></li>
+          <li><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span><strong>A person reviews</strong><span>No account is declined by software alone.</span></li>
+        </ul>
+        <h4 id="checks-h-personal" style="margin:1rem 0 .5rem" hidden>For each person applying</h4>
+        <ul class="checks" id="checks-personal" hidden>
+          <li><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span><strong>Identity check <span class="tag t-warning">Simulated</span></strong><span>Each person is matched to public records.</span></li>
+          <li><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/></svg></span><strong>Watchlist screen <span class="tag t-warning">Simulated</span></strong><span>Each person is checked against sample watchlists.</span></li>
+          <li><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span><strong>A person reviews</strong><span>No account is declined by software alone.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-queue" hidden>
+    <h2>Review queue</h2>
+    <p class="lede" style="margin-bottom:1rem">See what Middesk found, then make the final decision.</p>
+    <p style="margin:0 0 1.75rem"><a class="btn ghost" href="/api/audit.csv" download>Export audit log (CSV)</a></p>
+    <div class="queue">
+      <div>
+      <label class="assign-filter">Assigned to <span class="tag t-warning">Sample staff</span> <select id="assignee-filter"></select></label>
+      <div class="filter" id="filter" role="group" aria-label="Filter applications"></div>
+      <ul class="list" id="list" role="listbox" aria-label="Applications"></ul>
+      </div>
+      <div class="frame"><div class="card" id="detail" aria-live="polite"><p class="empty" style="margin:0">Pick an application to review it.</p></div></div>
+    </div>
+  </section>
+  <section id="view-maint" hidden>
+    <h2>Account maintenance</h2>
+    <p class="lede" style="margin-bottom:1rem">Change details on an open account. A person approves each change before it is sent to the core. <span class="tag t-warning">Simulated</span></p>
+    <div class="maint-pick">
+      <label for="m-search">Search customers <input id="m-search" type="search" autocomplete="off" placeholder="Name or reference"></label>
+      <label for="m-customer">Customer with an open account <select id="m-customer"></select></label>
+    </div>
+    <p class="empty" id="m-count" role="status"></p>
+    <div id="m-body"></div>
+  </section>
+</main>
+
+<footer class="site-footer" id="disclaimer">
+  <p><strong>Independent experimental project. Not for real-world account opening.</strong> Not legal, compliance, tax, or financial advice. Not affiliated with Middesk.</p>
+  <details>
+    <summary>Independent project disclaimer</summary>
+    <p>OpenOnboard is an independent, open-source educational prototype created to explore digital banking onboarding, KYB/KYC workflows, and technical integrations.</p>
+    <p>It is not affiliated with, sponsored by, or endorsed by any banking software provider or financial institution.</p>
+    <p>Demo verification, identity checks, account creation, and funding may be simulated. This software is not production-ready and must not be used to process real customer information without appropriate security, legal, and compliance review.</p>
+  </details>
+</footer>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const svg = (d) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const I = {
+  user: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>'),
+  role: svg('<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>'),
+  biz: svg('<path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/>'),
+  id: svg('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h6M7 14h4"/>'),
+  pin: svg('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>'),
+  web: svg('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/>'),
+  go: svg('<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/>'),
+  caution: svg('<path d="M12 3.5L2.5 20h19z"/><path d="M12 10v4.5M12 17.5v.01"/>'),
+  stop: svg('<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>'),
+  wait: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/>'),
+  m_contact: svg('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'),
+  m_switch: svg('<path d="M4 8h14l-3-3M20 16H6l3 3"/>'),
+  m_people: svg('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c1-3.5 3.5-5 6.5-5s5.5 1.5 6.5 5M16 5a3.5 3.5 0 0 1 0 6.5M18 15c2 .6 3.2 2.2 3.8 5"/>'),
+  m_sign: svg('<path d="M4 20h16M5 16c3-1 4-9 7-9s0 9 3 9 2-3 4-3"/>'),
+  m_card: svg('<rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M2.5 10h19M6 15h4"/>'),
+  m_check: svg('<rect x="2.5" y="6" width="19" height="12" rx="1.5"/><path d="M6 10h6M6 14h3M15 14h3"/>'),
+  m_box: svg('<rect x="3.5" y="4" width="17" height="16" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M12 9v-2M12 17v-2"/>'),
+  m_tax: svg('<path d="M8 3h8l4 4v14H4V3z"/><path d="M9 11h6M9 15h6"/>'),
+  m_note: svg('<path d="M5 4h14v12l-5 5H5z"/><path d="M14 21v-5h5M8 9h8M8 13h4"/>'),
+  refresh: svg('<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>'),
+};
+const LIST_LABEL = { recommend_approve: "Suggests approve", needs_review: "Needs review", recommend_decline: "Suggests decline", pending: "Verifying" };
+const MD_STATUS = { not_applicable: "Not applicable", open: "Open", pending: "Pending", in_audit: "In audit", in_review: "In review", approved: "Approved", rejected: "Rejected", error: "Error" };
+const STATUS_TAG = { success: "Passed", warning: "Check", failure: "Failed" };
+let selected = null, activeTab = "overview", queueFilter = "all", assigneeFilter = "";
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const d = body.detail;
+    throw Object.assign(new Error(Array.isArray(d) ? d.map(x => `${x.loc.at(-1)}: ${String(x.msg).replace(/^Value error, /, "")}`).join("\n") : (d || `Request failed (${r.status})`)), { status: r.status });
+  }
+  return body;
+}
+
+// theme toggle (remembered in this browser only)
+(function () {
+  let saved = null;
+  try { saved = localStorage.getItem("openonboard-theme"); } catch (e) {}
+  if (saved) document.documentElement.setAttribute("data-theme", saved);
+  $("#theme").onclick = () => {
+    const dark = getComputedStyle(document.documentElement).colorScheme.includes("dark");
+    const next = dark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("openonboard-theme", next); } catch (e) {}
+  };
+})();
+
+function show(view) {
+  $("#view-apply").hidden = view !== "apply";
+  $("#view-queue").hidden = view !== "queue";
+  $("#view-maint").hidden = view !== "maint";
+  for (const [t, v] of [["#tab-apply", "apply"], ["#tab-queue", "queue"], ["#tab-maint", "maint"]]) {
+    view === v ? $(t).setAttribute("aria-current", "page") : $(t).removeAttribute("aria-current");
+  }
+  if (view === "queue") loadList();
+  if (view === "maint") loadMaint();
+}
+$("#tab-apply").onclick = () => show("apply");
+$("#tab-queue").onclick = () => show("queue");
+$("#tab-maint").onclick = () => show("maint");
+
+function addOwner(name = "", title = "", pct = "", control = false) {
+  const div = document.createElement("div");
+  div.className = "owner";
+  div.innerHTML = `<label>Full name <input name="owner_name" value="${esc(name)}"></label>
+    <label>Title <input name="owner_title" value="${esc(title)}" placeholder="CEO"></label>
+    <label>Ownership % <input name="owner_pct" type="number" min="0" max="100" step="any" value="${esc(String(pct))}"></label>
+    <label class="check"><input name="owner_control" type="checkbox"${control ? " checked" : ""}> Controls the business</label>
+    <button type="button" class="btn ghost">Remove</button>`;
+  div.querySelector("button").onclick = () => div.remove();
+  $("#owners").append(div);
+}
+$("#add-owner").onclick = () => addOwner();
+
+let staff = [];
+const staffById = {};
+const staffName = (id) => (staffById[id] || {}).name || id;
+let staffPromise = null;
+// Loaded only when a staff feature needs it (reviewer pages may ask for the reviewer password).
+function loadStaff() {
+  if (!staffPromise) staffPromise = api("/api/staff").then(list => {
+    staff = list; list.forEach(s => staffById[s.id] = s);
+    $("[name=created_by]").innerHTML = `<option value="">Choose a banker</option>` + list.filter(s => s.role === "banker")
+      .map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("");
+  }).catch(() => { staffPromise = null; });
+  return staffPromise;
+}
+function setBranch(on) {
+  const f = $("#apply-form");
+  f.elements.in_branch.checked = on;
+  $("#branch-fields").hidden = !on;
+  if (on) loadStaff();
+  if (!on) f.elements.created_by.value = "";
+  $("#apply-intro").textContent = on
+    ? "Fill this in with the customer. The customer reads and signs the disclosures themselves."
+    : "It takes about two minutes.";
+}
+$("#apply-form").elements.in_branch.onchange = (e) => setBranch(e.target.checked);
+
+const accountType = () => $("#apply-form").elements.account_type.value;
+const START_TEXT = { h1: "Open a bank account in minutes", lede: "Choose the kind of account you need. A person on our team reviews every application." };
+// One choice at a time: business, personal, or business and personal together.
+let startPick = null;
+const START_HINT = {
+  business: "Business accounts selected.",
+  personal: "Personal accounts selected.",
+  both: "Business and personal selected. One application opens both kinds of accounts.",
+};
+function drawStart() {
+  const cards = [...document.querySelectorAll("[data-start]")];
+  cards.forEach(b => {
+    const on = b.dataset.start === startPick;
+    b.setAttribute("aria-checked", String(on));
+    b.querySelector(".go").textContent = on ? "✓ Selected" : "Select";
+  });
+  // roving tabindex: Tab lands on the selected card (or the first), arrows move between cards
+  cards.forEach((b, i) => b.tabIndex = (startPick ? b.dataset.start === startPick : i === 0) ? 0 : -1);
+  $("#start-continue").disabled = !startPick;
+  $("#start-hint").textContent = startPick ? START_HINT[startPick] : "Choose one.";
+}
+function pickStart(t, focus) {
+  startPick = t;
+  drawStart();
+  if (focus) $(`[data-start=${t}]`).focus();
+}
+const pickedType = () => startPick;
+function startApplication(t, focus = true) {
+  startPick = t;
+  drawStart();
+  $("#start").hidden = true;
+  $("#start-actions").hidden = true;
+  $("#apply-grid").hidden = false;
+  setAccountType(t);
+  history.replaceState(null, "", "#" + t);
+  if (focus) $("#apply-title").focus();
+}
+function backToStart() {
+  $("#apply-grid").hidden = true;
+  $("#start").hidden = false;
+  $("#start-actions").hidden = false;
+  drawStart();  // the previous selection stays shown
+  $("#apply-h1").textContent = START_TEXT.h1;
+  $("#apply-lede").textContent = START_TEXT.lede;
+  history.replaceState(null, "", location.pathname);
+  $(`[data-start=${startPick || "business"}]`).focus();
+}
+const START_ORDER = ["business", "personal", "both"];
+document.querySelectorAll("[data-start]").forEach(b => {
+  b.onclick = () => pickStart(b.dataset.start, false);
+  b.onkeydown = (e) => {
+    const i = START_ORDER.indexOf(b.dataset.start);
+    const next = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: START_ORDER.length - 1 }[e.key];
+    if (next === undefined) return;
+    e.preventDefault();
+    pickStart(START_ORDER[(next + START_ORDER.length) % START_ORDER.length], true);
+  };
+});
+$("#start-continue").onclick = () => { if (startPick) startApplication(pickedType()); };
+$("#change-type").onclick = backToStart;
+drawStart();
+const TYPE_TEXT = {
+  business: ["Let’s set up your business account", "Business banking, verified in minutes", "Tell us about your business. We check state registrations, the IRS and sanctions lists, and a person on our team makes the final call."],
+  personal: ["Let’s set up your personal account", "Personal banking, verified in minutes", "Tell us about yourself. We check each applicant’s identity and sanctions lists, and a person on our team makes the final call."],
+  both: ["Let’s set up your business and personal accounts", "Business and personal banking, verified in minutes", "Tell us about your business and about the people applying. We check the business and each person, and a person on our team makes the final call."],
+};
+const maxProducts = () => accountType() === "both" ? 6 : 4;
+function setAccountType(t) {
+  const f = $("#apply-form");
+  f.elements.account_type.value = t;
+  const personal = t === "personal", both = t === "both";
+  $("#personal-fields").hidden = !(personal || both);
+  $("#biz-fields").hidden = personal;
+  $("#checks-personal").hidden = !(personal || both);
+  $("#checks-business").hidden = personal;
+  $("#checks-h-business").hidden = $("#checks-h-personal").hidden = !both;
+  $("#owner-helper").hidden = !both;
+  $("#people-legend").textContent = both ? "Personal applicants" : "Applicants";
+  const [title, h1, lede] = TYPE_TEXT[t];
+  $("#apply-title").textContent = title;
+  $("#apply-h1").textContent = h1;
+  $("#apply-lede").textContent = lede;
+  $("#products-help").textContent = both
+    ? "Pick at least one business account and one personal account (up to 6 in all). Tick the box above each account you want. These fees and rates are samples, not real offers."
+    : "Pick one or more accounts to open (up to 4). Tick the box above each account you want. These fees and rates are samples, not real offers.";
+  document.querySelectorAll("[data-sample]").forEach(c => c.hidden = c.dataset.for !== t);
+  if ((personal || both) && !$("#people").children.length) addPerson();
+  drawProducts();
+}
+document.querySelectorAll("[name=account_type]").forEach(r => r.onchange = () => {
+  setAccountType(r.value);
+  history.replaceState(null, "", "#" + r.value);
+  startPick = r.value;
+  drawStart();
+});
+
+function ownerNames() {
+  return [...document.querySelectorAll("#owners [name=owner_name]")].map(i => i.value.trim()).filter(Boolean);
+}
+function drawOwnerPick() {
+  const pick = $("#owner-pick"), keep = pick.value, names = ownerNames();
+  pick.innerHTML = names.length ? names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("") : `<option value="">Add an owner first</option>`;
+  if (names.includes(keep)) pick.value = keep;
+}
+["focus", "pointerdown"].forEach(ev => $("#owner-pick").addEventListener(ev, drawOwnerPick));
+$("#owner-add").onclick = () => {  // copies the name only, nothing else about the owner
+  drawOwnerPick();
+  const name = $("#owner-pick").value;
+  if (!name) { $("#apply-error").textContent = "Add an owner above, then pick them here."; return; }
+  $("#apply-error").textContent = "";
+  const first = $("#people").firstElementChild;
+  if ($("#people").children.length === 1 && !pval(first, "full_name").value.trim()) { pval(first, "full_name").value = name; pval(first, "full_name").focus(); return; }
+  if ($("#people").children.length >= 4) { $("#apply-error").textContent = "You can add up to 4 people."; return; }
+  addPerson({ full_name: name });
+  $("#people").lastElementChild.querySelector("[name=p_date_of_birth]").focus();
+};
+
+const money = (cents) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+const catalogById = {};
+let catalog = [];
+const catalogReady = api("/api/products").then(list => { catalog = list; list.forEach(p => catalogById[p.id] = p); drawProducts(); }).catch(() => {
+  $("#compare").innerHTML = `<caption>Could not load the accounts. Reload the page.</caption>`;
+});
+const productName = (id) => (catalogById[id] || {}).name || id;
+
+function drawProducts() {
+  const type = accountType(), kinds = type === "both" ? ["business", "personal"] : [type];
+  const kept = {};  // remember chosen accounts and their options so a type switch does not drop them
+  document.querySelectorAll("#product-options .opts").forEach(b => kept[b.dataset.pid] = {
+    initial_deposit_cents: Math.round(parseFloat(b.querySelector("[name=deposit]").value) * 100) || undefined,
+    term_months: b.querySelector("[name=term]") ? Number(b.querySelector("[name=term]").value) : undefined,
+    overdraft_protection: !!b.querySelector("[name=overdraft]:checked"),
+    debit_card: !!b.querySelector("[name=debit]:checked"),
+  });
+  $("#product-options").innerHTML = "";
+  $("#compare2-wrap").hidden = type !== "both";
+  if (!catalog.length) return;
+  ["#compare", "#compare2"].forEach((sel, n) => {
+    const t = $(sel), kind = kinds[n];
+    if (!kind) { t.innerHTML = ""; return; }
+    const list = catalog.filter(p => p.account_type === kind);
+    const row = (label, fn) => `<tr><th scope="row">${label}</th>${list.map(p => `<td>${esc(fn(p))}</td>`).join("")}</tr>`;
+    t.innerHTML = `<caption>${kind === "personal" ? "Personal" : "Business"} accounts</caption>
+      <thead><tr><th scope="col"><span class="sr">Feature</span></th>${list.map(p =>
+        `<th scope="col"><label class="check"><input type="checkbox" data-pid="${esc(p.id)}"> <span>${esc(p.name)}</span></label></th>`).join("")}</tr></thead>
+      <tbody>
+      ${row("Minimum to open", p => money(p.min_opening_deposit_cents))}
+      ${row("Monthly fee", p => p.monthly_fee_cents ? money(p.monthly_fee_cents) : "None")}
+      ${row("How to avoid the fee", p => p.fee_waiver)}
+      ${row("Interest (APY)", p => p.apy)}
+      ${row("Good to know", p => p.notes + (p.terms_months ? ` Terms: ${p.terms_months.join(", ")} months.` : ""))}
+      </tbody>`;
+    t.querySelectorAll("[data-pid]").forEach(cb => cb.onchange = () => {
+      const picked = document.querySelectorAll("table.compare [data-pid]:checked");
+      if (picked.length > maxProducts()) { cb.checked = false; $("#apply-error").textContent = `You can choose up to ${maxProducts()} accounts.`; return; }
+      cb.checked ? addProductOptions(catalogById[cb.dataset.pid]) : $(`#opt-${CSS.escape(cb.dataset.pid)}`)?.remove();
+      orderOptions();
+    });
+  });
+  Object.keys(kept).forEach(id => pickProduct(id, kept[id]));
+}
+function orderOptions() {  // keep the option blocks in table order
+  const ids = [...document.querySelectorAll("table.compare [data-pid]:checked")].map(c => c.dataset.pid);
+  for (const id of ids) $("#product-options").append($(`#opt-${CSS.escape(id)}`));
+}
+function addProductOptions(p, init = {}) {
+  const box = document.createElement("fieldset");
+  box.className = "opts";
+  box.id = `opt-${p.id}`;
+  box.dataset.pid = p.id;
+  const dep = ((init.initial_deposit_cents ?? p.min_opening_deposit_cents) / 100).toFixed(2);
+  box.innerHTML = `<legend>${esc(p.name)}</legend>
+    <div class="row">
+      <label>Initial deposit ($) <small>At least ${esc(money(p.min_opening_deposit_cents))}</small>
+        <input name="deposit" type="number" inputmode="decimal" min="${p.min_opening_deposit_cents / 100}" max="1000000" step="0.01" value="${dep}" required></label>
+      ${p.kind === "certificate" ? `<label>Term <select name="term">${p.terms_months.map(m => `<option value="${m}"${init.term_months === m ? " selected" : ""}>${m} months</option>`).join("")}</select></label>` : "<span></span>"}
+    </div>
+    ${p.kind === "checking" ? `<label class="check"><input type="checkbox" name="overdraft"${init.overdraft_protection ? " checked" : ""}> Add overdraft protection?</label>
+      <label class="check"><input type="checkbox" name="debit"${init.debit_card ? " checked" : ""}> Add a debit card?</label>` : ""}`;
+  $("#product-options").append(box);
+}
+function pickProduct(id, init = {}) {
+  const cb = document.querySelector(`table.compare [data-pid="${CSS.escape(id)}"]`);
+  if (!cb || cb.checked) return;
+  cb.checked = true;
+  addProductOptions(catalogById[id], init);
+  orderOptions();
+}
+function readProducts() {
+  return [...document.querySelectorAll("#product-options [data-pid]")].map(box => {
+    const q = (n) => box.querySelector(`[name=${n}]`);
+    const out = { product_id: box.dataset.pid, initial_deposit_cents: Math.round(parseFloat(q("deposit").value) * 100) || 0 };
+    if (q("term")) out.term_months = Number(q("term").value);
+    if (q("overdraft")) { out.overdraft_protection = q("overdraft").checked; out.debit_card = q("debit").checked; }
+    return out;
+  });
+}
+
+const PERSON_ADDR = ["address_line1", "city", "state", "postal_code"];
+const pval = (box, k) => box.querySelector(`[name=p_${k}]`);
+function renumberPeople() {
+  [...$("#people").children].forEach((box, i) => {
+    box.querySelector("legend").textContent = i === 0 ? "Applicant 1 (primary)" : `Applicant ${i + 1}`;
+    const rm = box.querySelector(".rm"); if (rm) rm.setAttribute("aria-label", `Remove applicant ${i + 1}`);
+  });
+  $("#add-person").disabled = $("#people").children.length >= 4;
+}
+function syncAddress(box) {
+  const first = $("#people").firstElementChild;
+  for (const k of PERSON_ADDR) pval(box, k).value = pval(first, k).value;
+  pval(box, "address_line2").value = pval(first, "address_line2").value;
+}
+function addPerson(p = {}) {
+  const n = $("#people").children.length;
+  if (n >= 4) return;
+  const box = document.createElement("fieldset");
+  box.className = "person";
+  const f = (k, label, extra = "") => `<label>${label} <input name="p_${k}" value="${esc(p[k] || "")}" ${extra}></label>`;
+  box.innerHTML = `<legend></legend>
+    ${f("full_name", "Full legal name", 'autocomplete="name" required')}
+    <div class="row">
+      ${f("date_of_birth", "Date of birth", 'type="date" required autocomplete="bday"')}
+      ${f("ssn_last4", "Last 4 digits of SSN", 'maxlength="4" inputmode="numeric" pattern="[0-9]{4}" autocomplete="off" required')}
+      <span></span>
+    </div>
+    <div class="row">
+      ${f("email", "Email", 'type="email" autocomplete="email" required')}
+      ${f("phone", "Phone", 'type="tel" autocomplete="tel" required')}
+      <span></span>
+    </div>
+    ${n ? `<label class="check"><input type="checkbox" name="p_same"> Same address as primary applicant</label>` : ""}
+    ${f("address_line1", "Street address", 'autocomplete="address-line1" required')}
+    ${f("address_line2", "Apartment, suite or unit <small>Optional</small>", 'autocomplete="address-line2"')}
+    <div class="row">
+      ${f("city", "City", 'autocomplete="address-level2" required')}
+      ${f("state", "State", 'maxlength="2" autocomplete="address-level1" required')}
+      ${f("postal_code", "ZIP", 'inputmode="numeric" autocomplete="postal-code" required')}
+    </div>
+    ${n ? `<button type="button" class="btn ghost rm">Remove</button>` : ""}`;
+  $("#people").append(box);
+  if (n) {
+    const same = box.querySelector("[name=p_same]");
+    same.onchange = () => {
+      const on = same.checked;
+      for (const k of [...PERSON_ADDR, "address_line2"]) pval(box, k).readOnly = on;
+      if (on) syncAddress(box);
+    };
+    box.querySelector(".rm").onclick = () => { box.remove(); renumberPeople(); $("#add-person").focus(); };
+  } else {
+    box.addEventListener("input", () => {  // keep "same address" copies current
+      for (const other of [...$("#people").children].slice(1)) if (other.querySelector("[name=p_same]").checked) syncAddress(other);
+    });
+  }
+  renumberPeople();
+}
+$("#add-person").onclick = () => { addPerson(); $("#people").lastElementChild.querySelector("input").focus(); };
+function readPeople() {
+  return [...$("#people").children].map(box => ({
+    full_name: pval(box, "full_name").value.trim(),
+    date_of_birth: pval(box, "date_of_birth").value,
+    ssn_last4: pval(box, "ssn_last4").value.trim(),
+    email: pval(box, "email").value.trim(),
+    phone: pval(box, "phone").value.trim(),
+    address_line1: pval(box, "address_line1").value.trim(),
+    address_line2: pval(box, "address_line2").value.trim() || null,
+    city: pval(box, "city").value.trim(),
+    state: pval(box, "state").value.trim(),
+    postal_code: pval(box, "postal_code").value.trim(),
+  }));
+}
+
+const DOC_TYPES = [["formation_document", "Formation document"], ["ein_letter", "EIN letter"], ["ownership_document", "Ownership document"], ["other", "Other"]];
+const docTypeSelect = (name) => `<label>Document type <select name="${name}">${DOC_TYPES.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></label>`;
+function addDoc() {
+  const div = document.createElement("div");
+  div.className = "docrow";
+  div.innerHTML = `${docTypeSelect("doc_type")}
+    <label>File <input name="doc_file" type="file" accept=".pdf,.png,.jpg,.jpeg"></label>
+    <button type="button" class="btn ghost">Remove</button>`;
+  div.querySelector("button").onclick = () => div.remove();
+  $("#docs").append(div);
+}
+$("#add-doc").onclick = () => addDoc();
+
+async function uploadDoc(appId, docType, file) {
+  const fd = new FormData();
+  fd.append("doc_type", docType);
+  fd.append("file", file);
+  const r = await fetch(`/api/applications/${appId}/documents`, { method: "POST", body: fd });  // browser sets the multipart header
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(Array.isArray(body.detail) ? "Choose a document type and a file." : (body.detail || `Upload failed (${r.status})`));
+  return body;
+}
+
+let disclosureVersion = null;
+async function loadDisclosures() {
+  try {
+    const d = await api("/api/disclosures");
+    disclosureVersion = d.version;
+    $("#terms").innerHTML = d.sections.map(x => `<h4>${esc(x.title)}</h4><p>${esc(x.body)}</p>`).join("");
+  } catch (x) { $("#terms").textContent = "Could not load the disclosures. Reload the page."; }
+}
+loadDisclosures();
+
+const SAMPLES = {
+  clean: { business_name: "Corporation", tin: "12-3410000", address_line1: "223 Grand St.", city: "New York", state: "NY", postal_code: "10013", owner: ["Jane Doe", "CEO", 100, true] },
+  unregistered: { business_name: "Unregistered Business", tin: "98-7654321", address_line1: "423 Grand St.", city: "New York", state: "NY", postal_code: "10013", owner: ["Sam Lee", "Owner", 100, true] },
+  watchlist: { business_name: "Watchlist Hit Trading LLC", tin: "11-2223333", address_line1: "223 Grand St.", city: "New York", state: "NY", postal_code: "10013", owner: ["Alex Kim", "Managing Member", 100, true] },
+  ownerid: { business_name: "Corporation", tin: "12-3410000", address_line1: "223 Grand St.", city: "New York", state: "NY", postal_code: "10013", owner: ["J Doe", "CEO", 100, true] },
+  notin: { business_name: "Corporation", tin: "", address_line1: "223 Grand St.", city: "New York", state: "NY", postal_code: "10013", owner: ["Jane Doe", "CEO", 100, true] },
+};
+const SAM_PERSON = { date_of_birth: "1988-06-15", ssn_last4: "1234", email: "sample@example.com", phone: "(555) 010-0199", address_line1: "12 Elm St", city: "Albany", state: "NY", postal_code: "12207" };
+const PERSON_SAMPLES = {
+  p_clean: [{ ...SAM_PERSON, full_name: "Ava Stone" }],
+  p_joint: [{ ...SAM_PERSON, full_name: "Ava Stone" }, { ...SAM_PERSON, full_name: "Ben Stone", ssn_last4: "5678", date_of_birth: "1986-02-03", email: "ben@example.com" }],
+  p_iderror: [{ ...SAM_PERSON, full_name: "J Doe" }],
+};
+function fillBusiness(f, s) {
+  for (const k of ["business_name", "tin", "address_line1", "city", "state", "postal_code"]) f.elements[k].value = s[k];
+  f.elements.website.value = "";
+  $("#owners").innerHTML = ""; addOwner(...s.owner);
+}
+document.querySelectorAll("[data-sample]").forEach(b => b.onclick = () => {
+  const f = $("#apply-form"), people = PERSON_SAMPLES[b.dataset.sample];
+  $("#product-options").innerHTML = "";  // a sample starts from its own account choices
+  if (b.dataset.sample === "b_both") {  // SAMPLE: a business owner opening accounts for the company and for herself
+    setAccountType("both");
+    fillBusiness(f, SAMPLES.clean);
+    $("#people").innerHTML = ""; addPerson({ ...SAM_PERSON, full_name: "Jane Doe" });
+    f.elements.signature_name.value = "Jane Doe";  // the agreement box is never auto-checked
+    pickProduct("business-checking");
+    pickProduct("personal-everyday-checking");
+    return;
+  }
+  if (people) {
+    setAccountType("personal");
+    $("#people").innerHTML = ""; people.forEach(p => addPerson(p));
+    f.elements.signature_name.value = people[0].full_name;  // the agreement box is never auto-checked
+    pickProduct("personal-everyday-checking");
+    return;
+  }
+  setAccountType("business");
+  const s = SAMPLES[b.dataset.sample];
+  fillBusiness(f, s);
+  f.elements.signature_name.value = s.owner[0];  // the agreement box is never auto-checked
+  pickProduct("business-checking");
+});
+
+let submitting = false;
+$("#apply-form").onsubmit = async (e) => {
+  e.preventDefault();
+  if (submitting) return;
+  submitting = true;
+  const f = e.target, err = $("#apply-error"), btn = f.querySelector("button[type=submit]");
+  btn.disabled = true;
+  err.textContent = ""; $("#apply-done").hidden = true;
+  const owners = [...document.querySelectorAll("#owners .owner")].map(o => ({
+    name: o.querySelector("[name=owner_name]").value.trim(),
+    title: o.querySelector("[name=owner_title]").value.trim() || null,
+    ownership_pct: o.querySelector("[name=owner_pct]").value === "" ? null : Number(o.querySelector("[name=owner_pct]").value),
+    control_person: o.querySelector("[name=owner_control]").checked,
+  })).filter(o => o.name);
+  const type = accountType();
+  const inBranch = f.elements.in_branch.checked;
+  const bizFields = () => ({ owners, ...Object.fromEntries(["business_name", "tin", "address_line1", "city", "state", "postal_code", "website"]
+    .map(k => [k, f.elements[k].value.trim() || null])) });
+  const data = type === "personal" ? { account_type: "personal", individuals: readPeople() }
+    : type === "both" ? { account_type: "both", individuals: readPeople(), ...bizFields() }
+    : { account_type: "business", ...bizFields() };
+  try {
+    const created = await api("/api/applications", { method: "POST", body: JSON.stringify({
+      ...data,
+      products: readProducts(),
+      channel: inBranch ? "in_branch" : "online",
+      created_by: inBranch ? (f.elements.created_by.value || null) : null,
+      disclosures_accepted: f.elements.disclosures_accepted.checked,
+      disclosure_version: disclosureVersion,
+      signature_name: f.elements.signature_name.value.trim(),
+    }) });
+    selected = created.id; activeTab = "overview";
+    const failed = [];
+    for (const row of [...document.querySelectorAll("#docs .docrow")]) {
+      const file = row.querySelector("[name=doc_file]").files[0];
+      if (!file) continue;
+      try { await uploadDoc(created.id, row.querySelector("[name=doc_type]").value, file); }
+      catch (x) { failed.push(`${file.name}: ${x.message}`); }
+    }
+    const keepType = f.elements.account_type.value;  // stay on the kind of account the applicant chose
+    f.reset(); $("#owners").innerHTML = ""; $("#docs").innerHTML = ""; $("#people").innerHTML = ""; setBranch(false); $("#product-options").innerHTML = ""; setAccountType(keepType);  // clears the chosen accounts
+    if (failed.length) {  // the application exists; reviewers can attach these files later
+      activeTab = "documents";
+      alert(`Your application was submitted, but some files were not uploaded:\n${failed.join("\n")}\nA reviewer can attach them later.`);
+    }
+    if (reviewerLogin) {  // applicants don't have the reviewer password, so don't send them to the queue
+      const done = $("#apply-done");
+      done.textContent = `Thank you. Your application was received. Your reference is ${refId(created)}. A person on our team will review it.`;
+      done.hidden = false;
+      return;
+    }
+    show("queue");
+  } catch (x) {
+    err.textContent = x.status === 502
+      ? "Your application was received, but the verification service could not be reached. A reviewer will follow up. Please do not submit again."
+      : x.message;
+  } finally { submitting = false; btn.disabled = false; }
+};
+
+const isPersonal = (a) => (a.applicant || {}).account_type === "personal";
+const isBoth = (a) => (a.applicant || {}).account_type === "both";
+const typeLabel = (a) => isBoth(a) ? "Business + personal" : isPersonal(a) ? "Personal" : "Business";
+const productType = (id) => (catalogById[id] || {}).account_type;
+function bannerFor(a) {
+  const n = (a.reasons || []).length;
+  if (a.final_decision === "approved") return ["go", "Approved", "Decided by a reviewer"];
+  if (a.final_decision === "declined") return ["stop", "Declined", "Decided by a reviewer"];
+  switch (a.recommendation) {
+    case "recommend_approve": return ["go", "Looks good", isPersonal(a) ? "All simulated checks passed" : isBoth(a) ? "All Middesk and simulated checks passed" : "All Middesk checks passed"];
+    case "recommend_decline": return ["stop", "Likely decline", "A required check failed. Confirm before declining."];
+    case "needs_review": return a.priority === "high"
+      ? ["stop", "Needs review, high priority", isPersonal(a) || isBoth(a) ? "A person failed an identity check or matched a sample watchlist, or the business has a possible sanctions match. Escalate before deciding." : "Possible sanctions match. Escalate before deciding."]
+      : ["caution", "Needs review", `${n} ${n === 1 ? "item" : "items"} to check`];
+    default: return ["wait", "Verification in progress", "Waiting for Middesk results."];
+  }
+}
+const pipFor = (a) => bannerFor(a)[0];
+const refId = (a) => "KYB-" + a.id.replace(/-/g, "").slice(0, 6).toUpperCase();
+
+const FILTERS = [["todo", "To decide"], ["decided", "Decided"], ["all", "All"]];
+const EMPTY_LINE = { todo: "Nothing to decide right now.", decided: "Nothing has been decided yet." };
+let lastApps = [];
+
+function drawList(withDetail) {
+  const apps = lastApps;
+  const open = (a) => !a.final_decision;
+  const counts = { todo: apps.filter(open).length, decided: apps.filter(a => !open(a)).length, all: apps.length };
+  const f = $("#filter");
+  f.innerHTML = "";
+  for (const [key, label] of FILTERS) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("aria-pressed", String(queueFilter === key));
+    b.textContent = `${label} (${counts[key]})`;
+    b.onclick = () => { queueFilter = key; drawList(false); f.querySelector(`[aria-pressed="true"]`).focus(); };
+    f.append(b);
+  }
+  const af = $("#assignee-filter");
+  af.innerHTML = `<option value="">Anyone</option>` + staff.map(s => `<option value="${esc(s.id)}"${s.id === assigneeFilter ? " selected" : ""}>${esc(s.name)}</option>`).join("");
+  af.onchange = () => { assigneeFilter = af.value; drawList(false); $("#assignee-filter").focus(); };
+  const mine = (a) => !assigneeFilter || (a.assignees || []).includes(assigneeFilter);
+  let shown = (queueFilter === "todo" ? apps.filter(open) : queueFilter === "decided" ? apps.filter(a => !open(a)) : apps.slice()).filter(mine);
+  if (queueFilter === "todo") shown.sort((x, y) => (y.priority === "high") - (x.priority === "high") || new Date(y.created_at) - new Date(x.created_at));
+  $("#list").innerHTML = shown.length ? "" : `<li class="empty">${assigneeFilter && apps.length ? "Nothing here is assigned to that person." : apps.length ? EMPTY_LINE[queueFilter] : "No applications yet. Submit one from “Open an account”."}</li>`;
+  for (const a of shown) {
+    const li = document.createElement("li");
+    const status = a.final_decision ? (a.final_decision === "approved" ? "Approved" : "Declined") : (LIST_LABEL[a.recommendation] || "Not started");
+    li.innerHTML = `<button role="option" aria-selected="${a.id === selected}">
+      <span class="name">${esc(a.business_name)} <span class="kind">${typeLabel(a)}</span></span>
+      <span class="meta"><span class="pip ${pipFor(a)}"></span>${esc(status)}${a.priority === "high" && !a.final_decision ? ", high priority" : ""}</span>
+      <span class="meta">${refId(a)} · ${new Date(a.created_at).toLocaleDateString()}</span></button>`;
+    li.firstElementChild.onclick = () => { selected = a.id; activeTab = "overview"; loadList(); };
+    $("#list").append(li);
+  }
+  if (selected && withDetail) render(selected);
+}
+
+async function loadList(withDetail = true) {
+  await loadStaff();
+  lastApps = await api("/api/applications");
+  drawList(withDetail);
+}
+
+const KYC_TAG = { verified: ["t-success", "Verified"], needs_review: ["t-warning", "Check"], failed: ["t-failure", "Failed"] };
+function applicantsBlock(a) {
+  const ap = a.applicant || {};
+  const checks = (a.kyc || []).filter(x => !isBoth(a) || x.role === "applicant");
+  const cards = (ap.individuals || []).map((p, i) => {
+    const k = checks.find(x => x.name === p.full_name), t = k && KYC_TAG[k.status];
+    const addr = [p.address_line1, p.address_line2, p.city, [p.state, p.postal_code].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+    return `<div class="box"><ul class="lines">
+      <li>${I.user}<span>${i === 0 ? "Primary applicant" : `Applicant ${i + 1}`}: <b>${esc(p.full_name)}</b></span></li>
+      <li>${I.role}<span>Date of birth: <b>${esc(p.date_of_birth)}</b></span></li>
+      <li>${I.id}<span>SSN: <b>•••• ${esc(p.ssn_last4)}</b></span></li>
+      <li>${I.role}<span>Email: <b>${esc(p.email)}</b></span></li>
+      <li>${I.role}<span>Phone: <b>${esc(p.phone)}</b></span></li>
+      <li>${I.pin}<span>Address: <b>${esc(addr)}</b></span></li>
+      ${t ? `<li>${I.id}<span>Identity result: <span class="tag ${t[0]}">${t[1]}</span> <span class="tag t-warning">Simulated</span> ${esc(k.message)}</span></li>` : ""}</ul></div>`;
+  }).join("");
+  return `<h3${isBoth(a) ? ' style="margin-top:1.5rem"' : ""}>${isBoth(a) ? "Personal applicants" : "Applicants"}</h3>${cards ? `<div class="grid2">${cards}</div>` : `<p class="empty">No applicants were added.</p>`}`;
+}
+
+function channelBlock(a) {
+  return `<h3 style="margin-top:1.5rem">Channel</h3><div class="grid2"><div class="box"><ul class="lines">
+    <li><span>Channel: <b>${a.channel === "in_branch" ? "In branch" : "Online"}</b></span></li>
+    ${a.created_by ? `<li><span>Created by: <b>${esc(staffName(a.created_by))}</b> <span class="tag t-warning">Sample staff</span></span></li>` : ""}</ul></div></div>`;
+}
+
+function staffSection(a) {
+  const ids = a.assignees || [];
+  const chips = ids.map(id => `<li class="staff-chip">${esc(staffName(id))}<button type="button" data-unassign="${esc(id)}" aria-label="Remove ${esc(staffName(id))}">×</button></li>`).join("");
+  const avail = staff.filter(s => !ids.includes(s.id));
+  const full = ids.length >= 5;
+  return `<h3>Assigned staff <span class="tag t-warning">Sample staff</span></h3>
+    <p class="empty" style="margin-top:0">These are names, not logins. Everyone shares one reviewer password, so the app can't tell reviewers apart.</p>
+    ${chips ? `<ul class="chips" aria-label="Assigned staff">${chips}</ul>` : `<p class="empty">No one is assigned yet.</p>`}
+    <div class="staff-add">
+      <label>Add staff <select id="assign-select"${full ? " disabled" : ""}><option value="">Choose a person</option>${avail.map(s => `<option value="${esc(s.id)}">${esc(s.name)} (${esc(s.role)})</option>`).join("")}</select></label>
+      <button type="button" class="btn ghost" id="assign-add"${full ? " disabled" : ""}>Add staff</button>
+      <label>Primary officer <select id="officer-select"><option value="">None</option>${staff.map(s => `<option value="${esc(s.id)}"${s.id === a.primary_officer ? " selected" : ""}>${esc(s.name)}</option>`).join("")}</select></label>
+    </div>
+    ${full ? `<p class="empty">Up to 5 people can be assigned.</p>` : ""}
+    <div style="margin-bottom:1.5rem"></div>`;
+}
+
+function businessBlock(a) {
+  const ap = a.applicant || {};
+  const addr = [ap.address_line1, ap.city, [ap.state, ap.postal_code].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  const checks = (a.kyc || []).filter(x => x.role !== "applicant");
+  const people = (ap.owners || []).map(o => {
+    const k = checks.find(x => x.name === o.name), t = k && KYC_TAG[k.status];
+    return `<div class="box"><ul class="lines">
+      <li>${I.user}<span>Full name: <b>${esc(o.name)}</b></span></li>
+      <li>${I.role}<span>Title: <b>${esc(o.title || "Not given")}</b></span></li>
+      <li>${I.role}<span>Ownership: <b>${o.ownership_pct == null ? "Not given" : esc(String(o.ownership_pct)) + "%"}</b></span></li>
+      <li>${I.role}<span>Control person: <b>${o.control_person ? "Yes" : "No"}</b></span></li>
+      ${t ? `<li>${I.id}<span>Identity check: <span class="tag ${t[0]}">${t[1]}</span> ${esc(k.message)}</span></li>` : ""}</ul></div>`;
+  }).join("");
+  return `<h3>Business</h3>
+    <div class="grid2"><div class="box"><ul class="lines">
+      <li>${I.biz}<span>Legal name: <b>${esc(a.business_name)}</b></span></li>
+      <li>${I.id}<span>EIN: <b>${esc(ap.tin || "Not provided")}</b></span></li>
+      <li>${I.pin}<span>Address: <b>${esc(addr)}</b></span></li>
+      <li>${I.web}<span>Website: <b>${esc(ap.website || "None")}</b></span></li></ul></div></div>
+    <h3>People added <span class="tag t-warning">Simulated</span></h3>
+    ${people ? `<div class="grid2">${people}</div>` : `<p class="empty">No owners were added.</p>`}`;
+}
+
+function formsTab(a) {
+  const tail = `${productCards(a)}${channelBlock(a)}`;
+  if (isPersonal(a)) return applicantsBlock(a) + tail;
+  if (isBoth(a)) return businessBlock(a) + applicantsBlock(a) + tail;
+  return businessBlock(a) + tail;
+}
+
+function overviewTab(a) {
+  const ap = a.applicant || {};
+  const personal = isPersonal(a), both = isBoth(a);
+  const names = personal ? (ap.individuals || []).map(p => p.full_name) : (ap.owners || []).map(o => o.name);
+  const applicantNames = (ap.individuals || []).map(p => p.full_name);
+  const prods = (ap.products || []).map(c => productName(c.product_id)).join(", ") || "None chosen";
+  const tasks = a.tasks || [], docsN = a.__docs ?? 0;
+  const status = a.final_decision ? (a.final_decision === "approved" ? "Approved" : "Declined") : (LIST_LABEL[a.recommendation] || "Not started");
+  const verif = personal ? `${(a.kyc || []).length} identity checks (simulated)`
+    : both ? `${tasks.length} Middesk checks and ${(a.kyc || []).length} identity checks (simulated)` : `${tasks.length} Middesk checks`;
+  return `${staffSection(a)}<h3>${personal ? "Applicants" : "Business"} at a glance</h3>
+    <div class="grid2"><div class="box"><ul class="lines">
+      <li>${personal ? I.user : I.biz}<span>${personal ? "Account holder" : "Legal name"}: <b>${esc(a.business_name)}</b> <span class="kind">${typeLabel(a)}</span></span></li>
+      <li>${I.user}<span>${personal ? "Applicants" : "People added"}: <b>${names.length ? esc(names.join(", ")) : "None"}</b></span></li>
+      <li>${I.role}<span>Accounts requested: <b>${esc(prods)}</b></span></li></ul></div>
+    <div class="box"><ul class="lines">
+      <li><span>Status: <b>${esc(status)}</b></span></li>
+      <li><span>Verification results: <b>${verif}</b></span></li>
+      <li><span>Documents: <b>${docsN}</b></span></li>
+      <li><span>Accounts opened: <b>${(a.accounts || []).length} (simulated)</b></span></li>
+      <li><span>Maintenance: <b>${a.__maint ?? 0} ${a.__maint === 1 ? "request" : "requests"}</b>
+        ${(a.accounts || []).length ? `<button type="button" class="btn ghost" id="goto-maint" style="padding:.2rem .7rem;margin-left:.4rem">Open account maintenance</button>` : ""}</span></li></ul></div></div>
+    ${both ? `<h3>Applicants</h3><div class="grid2"><div class="box"><ul class="lines">
+      <li>${I.user}<span>Personal applicants: <b>${applicantNames.length ? esc(applicantNames.join(", ")) : "None"}</b></span></li>
+      <li>${I.id}<span>Personal accounts are checked with simulated identity and watchlist screens, not Middesk.</span></li></ul></div></div>` : ""}
+    <p class="empty">Every answer the applicant gave is under Forms.</p>`;
+}
+
+function signaturesTab(a) {
+  const ap = a.applicant || {};
+  if (!ap.signature_name) return `<p class="empty">No signature on file.</p>`;
+  return `<div class="grid2"><div class="box"><ul class="lines">
+    <li>${I.user}<span>Signed by: <b>${esc(ap.signature_name)}</b> <span class="tag t-warning">Simulated</span></span></li>
+    <li>${I.role}<span>Signed on: <b>${esc(new Date(ap.signed_at).toLocaleString())}</b></span></li>
+    <li>${I.id}<span>Disclosures version: <b>${esc(ap.disclosure_version)}</b></span></li></ul></div></div>
+    <p class="empty">This is a typed-name signature for the demo, not a legally binding e-signature.</p>`;
+}
+
+function identityBlock(a) {
+  const kyc = a.kyc || [];
+  if (!kyc.length) return "";
+  const TAG = { verified: ["t-success", "Verified"], needs_review: ["t-warning", "Check"], failed: ["t-failure", "Failed"] };
+  return `<h3>Identity results <span class="tag t-warning">Simulated</span></h3><ul class="ledger">${kyc.map(k => {
+    const t = TAG[k.status] || ["t-warning", esc(k.status)];
+    return `<li><span class="lbl">${esc(k.name)}${k.role ? ` <small>(${k.role === "owner" ? "owner" : "applicant"})</small>` : ""}</span><span class="msg">${esc(k.message)}</span><span class="tag ${t[0]}">${t[1]}</span></li>`;
+  }).join("")}</ul>`;
+}
+
+function checksTab(a) {
+  const tasks = a.tasks || [];
+  if (isPersonal(a)) return `<p class="empty">Personal accounts are not sent to Middesk. The recommendation comes from simulated identity and watchlist checks on each applicant. <span class="tag t-warning">Simulated</span></p>
+    ${identityBlock(a)}${(a.reasons || []).length ? `<h3>Why</h3><ul class="reasons">${a.reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}`;
+  const note = isBoth(a) ? `<p class="empty">Middesk checks the business. Owners and personal applicants get simulated identity checks, and applicants also get a simulated watchlist screen. <span class="tag t-warning">Simulated</span></p>` : "";
+  if (!tasks.length) return `${note}<p class="empty">Results aren’t back yet. Use Refresh results above.</p>${identityBlock(a)}`;
+  return `${note}<h3>Middesk checks</h3><ul class="ledger">${tasks.map(t => `<li><span class="lbl">${esc(t.label)}</span><span class="msg">${esc(t.message)}</span>
+      <span class="tag t-${esc(t.status)}">${STATUS_TAG[t.status] || esc(t.status)}</span></li>`).join("")}</ul>
+    ${identityBlock(a)}${(a.reasons || []).length ? `<h3>Why</h3><ul class="reasons">${a.reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}`;
+}
+
+const fmtSize = (n) => n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`;
+function documentsTab(a, docs) {
+  const label = Object.fromEntries(DOC_TYPES);
+  const list = docs.length ? `<ul class="ledger">${docs.map(d => `<li><span class="lbl">${esc(label[d.doc_type] || d.doc_type)}</span>
+      <span class="msg">${esc(d.filename)} · ${fmtSize(d.size)} · ${esc(new Date(d.created_at).toLocaleDateString())}</span>
+      <a href="/api/applications/${esc(a.id)}/documents/${esc(d.id)}" download>Download<span class="sr"> ${esc(d.filename)}</span></a></li>`).join("")}</ul>`
+    : `<p class="empty">No documents yet.</p>`;
+  return `${list}<h3 style="margin-top:1.5rem">Add a document</h3>
+    <div class="docrow">${docTypeSelect("up_type")}
+      <label>File <input id="up-file" type="file" accept=".pdf,.png,.jpg,.jpeg"></label>
+      <button type="button" class="btn primary" id="up-go">Upload</button></div>
+    <p class="empty">PDF, PNG or JPEG, up to 10 MB. Up to 10 documents per application.</p>`;
+}
+
+const EVENT_TEXT = {
+  document_uploaded: (d) => `Document added: ${d.filename} (${d.doc_type.replace(/_/g, " ")})`,
+  submitted: (d) => d.channel === "in_branch" ? `Application submitted in a branch by ${staffName(d.created_by)}` : "Application submitted",
+  disclosures_accepted: (d) => `Disclosures ${d.version} signed by ${d.signature_name} (simulated)`,
+  middesk_error: (d) => `Could not reach Middesk${d.message ? `: ${d.message}` : ""}`,
+  results_updated: (d) => `Results updated: ${MD_STATUS[d.middesk_status] || d.middesk_status || "unknown"}, ${LIST_LABEL[d.recommendation] || d.recommendation || "no recommendation"}`,
+  kyc_completed: (d) => `Identity checks done (simulated): ${d.verified || 0} verified, ${d.needs_review || 0} to check, ${d.failed || 0} failed`,
+  products_selected: (d) => `Accounts chosen: ${(d.products || []).map(x => productName(x.product_id)).join(", ")}`,
+  account_opened: (d) => `Account opened (simulated)${d.product_id ? ` for ${productName(d.product_id)}` : ""}: ending ${d.account_last4}, reference ${d.account_ref}`,
+  account_open_failed: (d) => `Could not open the account${d.message ? `: ${d.message}` : ""}`,
+  deposit_received: (d) => `First deposit received (simulated)${d.product_id ? ` for ${productName(d.product_id)}` : ""}: ${money(d.amount_cents)}`,
+  assignee_added: (d) => `${d.name} was assigned (sample staff)`,
+  assignee_removed: (d) => `${d.name} was unassigned (sample staff)`,
+  primary_officer_set: (d) => d.name ? `Primary officer set to ${d.name} (sample staff)` : "Primary officer cleared",
+  maintenance_requested: (d) => `Maintenance requested (${MAINT_LABEL(d.kind)}): ${d.summary}`,
+  maintenance_approved: (d) => `Maintenance approved${d.name ? ` by ${d.name}` : ""} (${MAINT_LABEL(d.kind)})`,
+  maintenance_rejected: (d) => `Maintenance rejected${d.name ? ` by ${d.name}` : ""} (${MAINT_LABEL(d.kind)})`,
+  maintenance_completed: (d) => `Maintenance completed (${MAINT_LABEL(d.kind)}), sent to the core (simulated)`,
+  decision_recorded: (d) => `Reviewer ${d.decision}${d.note ? `: ${d.note}` : ""}`,
+};
+
+async function loadHistory(id) {
+  const box = $("#history"); if (!box) return;
+  try {
+    const events = await api(`/api/applications/${id}/events`);
+    box.innerHTML = events.map(e => `<li>${esc(new Date(e.at).toLocaleString())}: ${esc((EVENT_TEXT[e.kind] || (() => e.kind))(e.detail || {}))}</li>`).join("");
+  } catch (x) { box.innerHTML = `<li>Could not load history.</li>`; }
+}
+
+const historyBlock = () => `<h3 style="margin-top:1.5rem">History</h3><ul id="history" aria-label="History"></ul>`;
+
+function missingProducts(a) {
+  const have = new Set((a.accounts || []).map(x => x.product_id));
+  return ((a.applicant || {}).products || []).filter(c => !have.has(c.product_id));
+}
+
+function accountsTab(a) {
+  if (a.final_decision !== "approved") return `<p class="empty">Accounts are opened after an approval. ${a.final_decision ? "This application was declined, so none were opened." : "Nothing has been opened yet."}</p>`;
+  const accounts = a.accounts || [], missing = missingProducts(a);
+  const boxes = accounts.map(x => `<div class="box"><h4 style="margin:0 0 .5rem">${esc(x.product_name || "Account")}</h4><ul class="lines">
+      <li><span>Account ending in <b>${esc(x.account_last4)}</b></span></li>
+      <li><span>Core reference: <b>${esc(x.account_ref)}</b></span></li>
+      <li><span>Core status: <b>Open (simulated)</b></span></li>
+      ${x.opened_at ? `<li><span>Opened: <b>${esc(new Date(x.opened_at).toLocaleString())}</b></span></li>` : ""}</ul></div>`).join("");
+  const retry = missing.length ? `<div class="box"><p>${accounts.length ? "Some accounts have" : "The accounts have"} not been opened yet: ${esc(missing.map(c => productName(c.product_id)).join(", "))}.</p>
+    <button class="btn ghost" id="open-account">Try opening the accounts again</button></div>` : "";
+  return `<h3 style="margin-top:0">Accounts <span class="tag t-warning">Simulated</span></h3><div class="grid2">${boxes}${retry}</div>`;
+}
+
+function fundingTab(a) {
+  if (a.final_decision !== "approved") return `<p class="empty">Funding starts once accounts are opened after an approval.</p>`;
+  const accounts = a.accounts || [], chosen = (a.applicant || {}).products || [];
+  const expectedOf = (x) => x.expected_deposit_cents ?? (chosen.find(c => c.product_id === x.product_id) || {}).initial_deposit_cents ?? null;
+  let exp = 0, got = 0;
+  const boxes = accounts.map((x, i) => {
+    const funded = x.funding_status === "funded", e = expectedOf(x);
+    exp += e || 0; got += funded ? (x.funded_amount_cents || 0) : 0;
+    return `<div class="box"><h4 style="margin:0 0 .5rem">${esc(x.product_name || "Account")}</h4><ul class="lines">
+      <li><span>Expected deposit: <b>${e == null ? "Not given" : money(e)}</b></span></li>
+      <li><span>Received: <b>${funded ? money(x.funded_amount_cents) : "Waiting for first deposit"}</b></span></li></ul>
+    ${funded ? "" : `<form class="deposit-form" data-pid="${esc(x.product_id ?? "")}"><label for="deposit-amount-${i}">First deposit amount in dollars for ${esc(x.product_name || "this account")} (simulated, no money moves)</label>
+      <input id="deposit-amount-${i}" type="number" min="1" max="1000000" step="0.01" value="${((e ?? 10000) / 100).toFixed(2)}" required>
+      <button class="btn ghost" type="submit">Simulate first deposit</button></form>`}</div>`;
+  }).join("");
+  const missing = missingProducts(a);
+  return `<h3 style="margin-top:0">Funding <span class="tag t-warning">Simulated</span></h3>
+    ${accounts.length ? `<div class="grid2">${boxes}</div>` : `<p class="empty">No accounts are open yet. Open them from the Accounts tab.</p>`}
+    ${missing.length ? `<p class="empty">Not opened yet: ${esc(missing.map(c => productName(c.product_id)).join(", "))}.</p>` : ""}
+    <p><b>Totals:</b> expected ${money(exp)}, received ${money(got)}</p>`;
+}
+
+function productCards(a) {
+  const chosen = (a.applicant || {}).products || [];
+  if (!chosen.length) return "";
+  const acct = Object.fromEntries((a.accounts || []).map(x => [x.product_id, x]));
+  const cards = chosen.map(c => {
+    const p = catalogById[c.product_id] || {}, x = acct[c.product_id];
+    return `<div class="box"><ul class="lines">
+      <li><span>Account: <b>${esc(productName(c.product_id))}</b> <span class="tag t-warning">Sample</span></span></li>
+      <li><span>Initial deposit: <b>${money(c.initial_deposit_cents)}</b></span></li>
+      ${c.term_months ? `<li><span>Term: <b>${esc(String(c.term_months))} months</b></span></li>` : ""}
+      ${p.kind === "checking" ? `<li><span>Overdraft protection: <b>${c.overdraft_protection ? "Yes" : "No"}</b></span></li>
+      <li><span>Debit card: <b>${c.debit_card ? "Yes" : "No"}</b></span></li>` : ""}
+      ${x ? `<li><span>Status: <b>${x.funding_status === "funded" ? "Open and funded (simulated)" : "Open, waiting for deposit (simulated)"}</b></span></li>`
+        : a.final_decision === "approved" ? `<li><span>Status: <b>Not opened yet</b></span></li>` : ""}</ul></div>`;
+  }).join("");
+  return `<h3 style="margin-top:1.5rem">Accounts requested</h3><div class="grid2">${cards}</div>`;
+}
+
+const exportLink = (a) => `<p style="margin-top:1.5rem"><a href="/api/applications/${esc(a.id)}/export" download>Export application (JSON)</a>
+  <span class="empty">Details, history and document names. No date of birth, SSN digits or file contents.</span></p>`;
+
+function decisionTab(a) {
+  if (a.final_decision) return `<p><b>${a.final_decision === "approved" ? "Approved" : "Declined"}</b>${a.reviewer_note ? `: ${esc(a.reviewer_note)}` : ""}</p>
+    ${a.decided_at ? `<p class="empty">Decided ${esc(new Date(a.decided_at).toLocaleString())}</p>` : ""}${exportLink(a)}${historyBlock()}`;
+  const pending = (a.recommendation || "pending") === "pending";
+  return `<label>Your note <textarea id="rnote" placeholder="Why you decided this"></textarea></label>
+    <div class="actions">
+      <button class="btn primary" data-d="approved" ${pending ? "disabled" : ""}>Approve account</button>
+      <button class="btn danger" data-d="declined" ${pending ? "disabled" : ""}>Decline account</button>
+    </div>
+    ${pending ? `<p class="empty" style="margin-top:.75rem">You can decide once verification results are back.</p>` : ""}${exportLink(a)}${historyBlock()}`;
+}
+
+async function render(id, refresh = false) {
+  const d = $("#detail");
+  try {
+    await catalogReady; await loadStaff();
+    const a = await api(`/api/applications/${id}${refresh ? "?refresh=true" : ""}`);
+    const [k, title, sub] = bannerFor(a);
+    const pending = (a.recommendation || "pending") === "pending";
+    const action = a.final_decision ? ""
+      : pending ? `<button class="btn primary" id="refresh">${I.refresh}Refresh results</button>`
+      : `<button class="btn primary" id="go-decide">Review and decide</button>`;
+    const docs = await api(`/api/applications/${id}/documents`);
+    const nTasks = (a.tasks || []).length;
+    a.__docs = docs.length;
+    a.__maint = (await api(`/api/applications/${id}/maintenance`)).length;
+    const nChecks = nTasks + (a.kyc || []).length;
+    const TABS = [["overview", "Overview"], ["forms", "Forms"], ["checks", `Verifications${nChecks ? `<span class="count">${nChecks}</span>` : ""}`], ["signatures", "Signatures"],
+      ["documents", `Documents${docs.length ? `<span class="count">${docs.length}</span>` : ""}`], ["accounts", `Accounts${(a.accounts || []).length ? `<span class="count">${a.accounts.length}</span>` : ""}`], ["funding", "Funding"], ["decision", "Decision"]];
+    if (!TABS.some(t => t[0] === activeTab)) activeTab = "overview";
+    const bodies = { overview: overviewTab, forms: formsTab, checks: checksTab, signatures: signaturesTab, accounts: accountsTab, funding: fundingTab, decision: decisionTab };
+    const body = activeTab === "documents" ? documentsTab(a, docs) : bodies[activeTab](a);
+    d.innerHTML = `
+      <dl class="facts">
+        <div><dt>${isPersonal(a) ? "Applicant" : "Business"}</dt><dd>${esc(a.business_name)}</dd></div>
+        <div><dt>Product</dt><dd>${esc(((a.applicant || {}).products || []).map(c => productName(c.product_id)).join(", ") || (isPersonal(a) ? "Personal account" : isBoth(a) ? "Business and personal accounts" : "Business account"))}</dd></div>
+        <div><dt>Channel</dt><dd>${a.channel === "in_branch" ? "In branch" : "Online"}</dd></div>
+        ${a.created_by ? `<div><dt>Created by</dt><dd>${esc(staffName(a.created_by))}</dd></div>` : ""}
+        <div><dt>Primary officer</dt><dd>${a.primary_officer ? esc(staffName(a.primary_officer)) : "None"}</dd></div>
+        <div><dt>Submitted</dt><dd>${new Date(a.created_at).toLocaleDateString()}</dd></div>
+        <div><dt>Middesk status</dt><dd>${esc(MD_STATUS[a.middesk_status] || a.middesk_status || "—")}</dd></div>
+        <div><dt>Reference ID</dt><dd class="ref">${refId(a)}</dd></div>
+      </dl>
+      <div class="banner b-${k}" role="status"><span class="badge">${I[k]}</span>
+        <div class="txt"><strong>${title}</strong><span>${esc(sub)}</span></div>${action}</div>
+      <div class="tabs" role="tablist" aria-label="Application sections">${TABS.map(([key, label]) =>
+        `<button role="tab" type="button" id="rtab-${key}" data-tab="${key}" aria-selected="${key === activeTab}" aria-controls="rpanel" tabindex="${key === activeTab ? 0 : -1}">${label}</button>`).join("")}</div>
+      <div role="tabpanel" id="rpanel" aria-labelledby="rtab-${activeTab}" tabindex="0">${body}</div>
+      <p class="error" id="detail-error" role="alert"></p>`;
+    if (activeTab === "decision") loadHistory(id);
+    const tabBtns = [...d.querySelectorAll("[role=tab]")];
+    const goTab = async (key) => { activeTab = key; await render(id); $(`#rtab-${key}`)?.focus(); };
+    tabBtns.forEach((b, i) => {
+      b.onclick = () => goTab(b.dataset.tab);
+      b.onkeydown = (ev) => {
+        const to = { ArrowRight: (i + 1) % tabBtns.length, ArrowLeft: (i + tabBtns.length - 1) % tabBtns.length, Home: 0, End: tabBtns.length - 1 }[ev.key];
+        if (to === undefined) return;
+        ev.preventDefault();
+        goTab(tabBtns[to].dataset.tab);
+      };
+    });
+    const staffCall = async (path, opts, focus) => {
+      try { await api(`/api/applications/${id}/${path}`, opts); await render(id); loadList(false); if (focus) $(focus)?.focus(); }
+      catch (x) { $("#detail-error").textContent = x.message; }
+    };
+    const sa = $("#assign-add");
+    if (sa) sa.onclick = () => {
+      const v = $("#assign-select").value;
+      if (!v) { $("#detail-error").textContent = "Choose a person to add."; return; }
+      staffCall("assignees", { method: "POST", body: JSON.stringify({ staff_id: v }) }, "#assign-select");
+    };
+    d.querySelectorAll("[data-unassign]").forEach(b => b.onclick = () =>
+      staffCall(`assignees/${encodeURIComponent(b.dataset.unassign)}`, { method: "DELETE" }, "#assign-select"));
+    const os = $("#officer-select");
+    if (os) os.onchange = () => staffCall("primary-officer", { method: "PUT", body: JSON.stringify({ staff_id: os.value || null }) }, "#officer-select");
+    const up = $("#up-go");
+    if (up) up.onclick = async () => {
+      const file = $("#up-file").files[0], e = $("#detail-error");
+      if (!file) { e.textContent = "Choose a file first."; return; }
+      up.disabled = true;
+      try { await uploadDoc(id, $("[name=up_type]").value, file); await render(id); }
+      catch (x) { up.disabled = false; e.textContent = x.message; }
+    };
+    const r = $("#refresh"); if (r) r.onclick = async () => { r.disabled = true; await render(id, true); loadList(false); };
+    const gm = $("#goto-maint"); if (gm) gm.onclick = () => { mCustomer = id; show("maint"); };
+    const g = $("#go-decide"); if (g) g.onclick = () => { activeTab = "decision"; render(id); };
+    const oa = $("#open-account");
+    if (oa) oa.onclick = async () => {
+      oa.disabled = true;
+      try { await api(`/api/applications/${id}/open-account`, { method: "POST" }); await render(id); loadList(false); }
+      catch (x) { oa.disabled = false; $("#detail-error").textContent = x.message; }
+    };
+    d.querySelectorAll(".deposit-form").forEach(df => df.onsubmit = async (ev) => {
+      ev.preventDefault();
+      const cents = Math.round(parseFloat(df.querySelector("input").value) * 100);
+      try { await api(`/api/applications/${id}/simulate-deposit`, { method: "POST", body: JSON.stringify({ amount_cents: cents, product_id: df.dataset.pid || null }) }); await render(id); }
+      catch (x) { $("#detail-error").textContent = x.message; }
+    });
+    const decideButtons = d.querySelectorAll("[data-d]");
+    decideButtons.forEach(b => b.onclick = async () => {
+      decideButtons.forEach(x => x.disabled = true);
+      try {
+        await api(`/api/applications/${id}/decision`, { method: "POST", body: JSON.stringify({ decision: b.dataset.d, note: $("#rnote").value || null }) });
+      } catch (x) {
+        if (x.status === 409) { await render(id); loadList(false); }  // someone already decided: show the current state and refresh the list
+        else decideButtons.forEach(btn => btn.disabled = false);
+        $("#detail-error").textContent = x.message;
+        return;
+      }
+      loadList();
+    });
+  } catch (x) { d.innerHTML = `<p class="error">${esc(x.message)}</p>`; }
+}
+
+// ---------- account maintenance ----------
+let mKinds = [], mApps = [], mCustomer = "", mKind = "", mReqs = [];
+const mKindsReady = api("/api/maintenance/kinds").then(k => mKinds = k).catch(() => {});
+const MAINT_LABEL = (k) => (mKinds.find(x => x.id === k) || {}).label || k;
+const MAINT_ICON = { contact_change: I.m_contact, product_change: I.m_switch, beneficiary_change: I.m_people, signer_change: I.m_sign,
+  debit_card_order: I.m_card, check_order: I.m_check, safe_deposit_box: I.m_box, tax_id_change: I.m_tax, note: I.m_note };
+const M_STATUS = { pending: ["t-warning", "Pending approval"], completed: ["t-success", "Completed"], approved: ["t-success", "Approved"], rejected: ["t-failure", "Rejected"] };
+const productKind = (id) => (catalogById[id] || {}).kind;
+const mApp = () => mApps.find(a => a.id === mCustomer);
+const mErr = (msg) => { const e = $("#m-error"); if (e) e.textContent = msg || ""; };
+
+async function loadMaint() {
+  await Promise.all([mKindsReady, catalogReady, loadStaff()]);
+  try { mApps = (await api("/api/applications")).filter(a => a.final_decision === "approved" && (a.accounts || []).length); }
+  catch (x) { $("#m-body").innerHTML = `<p class="error">${esc(x.message)}</p>`; return; }
+  drawCustomers();
+}
+
+function drawCustomers() {
+  const q = $("#m-search").value.trim().toLowerCase();
+  const list = mApps.filter(a => !q || a.business_name.toLowerCase().includes(q) || refId(a).toLowerCase().includes(q) || a.id === mCustomer);
+  const sel = $("#m-customer");
+  sel.innerHTML = `<option value="">${list.length ? "Choose a customer" : "No customers match"}</option>` +
+    list.map(a => `<option value="${esc(a.id)}"${a.id === mCustomer ? " selected" : ""}>${esc(a.business_name)} (${typeLabel(a)}, ${refId(a)})</option>`).join("");
+  $("#m-count").textContent = mApps.length ? "" : "No approved applications with an open account yet. Approve one from the Review queue first.";
+  if (mCustomer && !mApp()) mCustomer = "";
+  drawMaint();
+}
+$("#m-search").oninput = drawCustomers;
+$("#m-customer").onchange = () => { mCustomer = $("#m-customer").value; mKind = ""; drawMaint(); };
+
+async function drawMaint() {
+  const body = $("#m-body"), a = mApp();
+  if (!a) { body.innerHTML = ""; return; }
+  const kinds = mKinds.filter(k => isBoth(a) || k.applies_to === "both" || k.applies_to === (isPersonal(a) ? "personal" : "business"));
+  if (!kinds.some(k => k.id === mKind)) mKind = "";
+  body.innerHTML = `<h3>What does ${esc(a.business_name)} need?</h3>
+    <ul class="mcards" aria-label="Kinds of maintenance request">${kinds.map(k => `<li><button type="button" class="mcard" data-kind="${esc(k.id)}" aria-pressed="${k.id === mKind}">
+      ${MAINT_ICON[k.id] || ""}<b>${esc(k.label)}</b><span>${esc(k.description)}</span></button></li>`).join("")}</ul>
+    <div id="m-form" tabindex="-1"></div>
+    <p class="error" id="m-error" role="alert"></p>
+    <h3 style="margin-top:1.5rem">Requests <span class="tag t-warning">Simulated</span></h3>
+    <p class="empty" style="margin-top:0">Approving sends the change to the core. The core here is simulated, so nothing leaves this app.</p>
+    <div id="m-reqs" aria-live="polite"></div>`;
+  body.querySelectorAll("[data-kind]").forEach(b => b.onclick = () => { mKind = b.dataset.kind; drawMaint(); setTimeout(() => $("#m-form input, #m-form select, #m-form textarea")?.focus(), 0); });
+  if (mKind) drawMaintForm(a);
+  await drawRequests(a);
+}
+
+const fld = (name, label, extra = "", hint = "") => `<label>${label}${hint ? ` <small>${hint}</small>` : ""}<input name="${name}" ${extra}></label>`;
+function acctSelect(a, kindFilter, typeFilter) {
+  const opts = (a.accounts || []).filter(x => (!kindFilter || kindFilter.includes(productKind(x.product_id))) && (!typeFilter || !isBoth(a) || productType(x.product_id) === typeFilter));
+  return `<label>Account <select name="account_ref" required><option value="">Choose an account</option>${opts.map(x => `<option value="${esc(x.account_ref)}">${esc(x.product_name || "Account")} ending ${esc(x.account_last4)}</option>`).join("")}</select></label>`;
+}
+function benRow(i) {
+  return `<div class="ben-row"><label>Name <input name="ben_name" required maxlength="120" autocomplete="off"></label>
+    <label>Relationship <input name="ben_rel" required maxlength="60" autocomplete="off"></label>
+    <label>Share (%) <input name="ben_pct" type="number" min="1" max="100" step="0.01" required></label>
+    <button type="button" class="btn ghost" data-rm-ben aria-label="Remove beneficiary ${i}">Remove</button></div>`;
+}
+
+function maintFields(a, kind) {
+  const personal = isPersonal(a), both = isBoth(a), people = (a.applicant || {}).individuals || [];
+  const target = both ? `<label>Who is this for? <select name="target" required><option value="business">The business</option>${people.map((p, i) => `<option value="${i}">${esc(p.full_name)} (applicant ${i + 1})</option>`).join("")}</select></label>` : "";
+  const who = people.length > 1 ? `<label>Applicant <select name="person_index">${people.map((p, i) => `<option value="${i}">${esc(p.full_name)}</option>`).join("")}</select></label>` : "";
+  switch (kind) {
+    case "contact_change": return `<p class="empty">Fill in only what changes. Blank fields stay as they are.</p>${target}${who}
+      <div class="row">${fld("name", personal ? "Full name" : both ? "Business or person name" : "Business name", 'maxlength="120" autocomplete="off"')}${fld("email", "Email", 'type="email" autocomplete="off"')}${fld("phone", "Phone", 'type="tel" autocomplete="off"')}</div>
+      ${fld("address_line1", "Street address", 'autocomplete="off"')}${fld("address_line2", "Apartment, suite or unit", 'autocomplete="off"')}
+      <div class="row">${fld("city", "City", 'autocomplete="off"')}${fld("state", "State", 'maxlength="2" autocomplete="off"', "2 letters")}${fld("postal_code", "ZIP code", 'autocomplete="off"', "like 10013")}</div>`;
+    case "product_change": {
+      const mine = new Set((a.accounts || []).map(x => x.product_id));
+      const opts = catalog.filter(p => (both || p.account_type === (personal ? "personal" : "business")) && !mine.has(p.id));
+      return `${acctSelect(a)}<label>Move it to <select name="new_product_id" required><option value="">Choose an account type</option>${opts.map(p => `<option value="${esc(p.id)}" data-type="${esc(p.account_type)}">${esc(p.name)} (${both ? p.account_type + ", " : ""}sample)</option>`).join("")}</select></label>
+        <label>Term in months <small>only for a certificate</small> <select name="term_months"><option value="">No term</option><option>6</option><option>12</option><option>24</option></select></label>`;
+    }
+    case "beneficiary_change": return `${acctSelect(a, ["savings", "certificate"], "personal")}<fieldset><legend>Beneficiaries</legend><div id="ben-rows">${benRow(1)}</div>
+      <button type="button" class="btn ghost" id="ben-add">Add beneficiary</button><p class="empty" style="margin:0">Shares must add up to 100%. Up to 5 people.</p></fieldset>`;
+    case "signer_change": return `${acctSelect(a, null, "business")}<fieldset><legend>Signer</legend><div class="radios">
+      <label><input type="radio" name="action" value="add" checked> Add a signer</label><label><input type="radio" name="action" value="remove"> Remove a signer</label></div>
+      <div class="row">${fld("name", "Full name", 'required maxlength="120" autocomplete="off"')}${fld("title", "Title", 'maxlength="80" autocomplete="off"')}</div></fieldset>`;
+    case "debit_card_order": return `${acctSelect(a, ["checking"])}<label>Why is the card needed? <select name="reason" required><option value="new">A new card</option><option value="replacement">A replacement card</option><option value="lost_stolen">Lost or stolen</option></select></label>`;
+    case "check_order": return `${acctSelect(a, ["checking"])}<div class="row"><label>How many checks? <select name="quantity"><option>50</option><option>100</option><option>200</option></select></label>
+      <label>Style <select name="style"><option value="standard">Standard</option></select></label></div>`;
+    case "safe_deposit_box": return `<div class="row"><label>Box size <select name="box_size" required><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select></label>
+      ${fld("branch", "Branch", 'required minlength="2" maxlength="100" autocomplete="off"')}</div>`;
+    case "tax_id_change": if (both) return `${target}
+      <div id="tax-ein">${fld("ein", "New EIN", 'inputmode="numeric" maxlength="10" autocomplete="off"', "like 12-3456789. Only the last 4 digits are kept.")}</div>
+      <div id="tax-ssn" hidden>${fld("ssn_last4", "New last 4 digits of the SSN", 'inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" disabled', "only 4 digits")}</div>`;
+      return personal
+      ? `${who}${fld("ssn_last4", "New last 4 digits of the SSN", 'required inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off"', "only 4 digits")}`
+      : fld("ein", "New EIN", 'required inputmode="numeric" maxlength="10" autocomplete="off"', "like 12-3456789. Only the last 4 digits are kept.");
+    default: return `<label>Note <small>up to 2000 characters</small><textarea name="text" required maxlength="2000"></textarea></label>`;
+  }
+}
+
+function readMaint(form, kind) {
+  const v = (n) => (form.elements[n]?.value ?? "").trim();
+  const out = {};
+  const put = (...names) => names.forEach(n => { if (v(n)) out[n] = v(n); });
+  if (form.elements.person_index) out.person_index = Number(v("person_index"));
+  if (form.elements.target) { if (v("target") === "business") out.target = "business"; else out.person_index = Number(v("target")); }
+  switch (kind) {
+    case "contact_change": put("name", "email", "phone", "address_line1", "address_line2", "city", "state", "postal_code"); break;
+    case "product_change": put("account_ref", "new_product_id"); if (v("term_months")) out.term_months = Number(v("term_months")); break;
+    case "beneficiary_change": {
+      put("account_ref");
+      const rows = [...form.querySelectorAll(".ben-row")];
+      out.beneficiaries = rows.map(r => ({ name: r.querySelector("[name=ben_name]").value.trim(), relationship: r.querySelector("[name=ben_rel]").value.trim(), share_pct: Number(r.querySelector("[name=ben_pct]").value) }));
+      break;
+    }
+    case "signer_change": put("account_ref", "name", "title"); out.action = form.elements.action.value; break;
+    case "debit_card_order": put("account_ref", "reason"); break;
+    case "check_order": put("account_ref", "style"); out.quantity = Number(v("quantity")); break;
+    case "safe_deposit_box": put("box_size", "branch"); break;
+    case "tax_id_change": put("ssn_last4", "ein"); break;
+    default: put("text");
+  }
+  return out;
+}
+
+function drawMaintForm(a) {
+  const k = mKinds.find(x => x.id === mKind), box = $("#m-form");
+  box.innerHTML = `<form class="card" id="m-fm" novalidate><h3 style="margin:0">${esc(k.label)}</h3>
+    ${maintFields(a, mKind)}
+    <label>Requested by <small>sample staff, optional</small> <select name="requested_by"><option value="">Not recorded</option>${staff.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("")}</select></label>
+    <div class="actions" style="margin:0"><button class="btn primary" type="submit">${k.needs_approval ? "Send for approval" : "Save note"}</button></div></form>`;
+  const form = $("#m-fm");
+  const addBen = $("#ben-add");
+  if (form.elements.target && mKind === "tax_id_change") {  // the business has an EIN, a person has an SSN
+    const sync = () => {
+      const biz = form.elements.target.value === "business";
+      $("#tax-ein").hidden = !biz; $("#tax-ssn").hidden = biz;
+      for (const [el, on] of [[form.elements.ein, biz], [form.elements.ssn_last4, !biz]]) { el.disabled = !on; el.required = on; if (!on) el.value = ""; }
+    };
+    form.elements.target.onchange = sync; sync();
+  }
+  if (form.elements.new_product_id && isBoth(a)) {  // an account can only switch to the same kind of product
+    const acct = form.elements.account_ref, np = form.elements.new_product_id;
+    const sync = () => { const t = productType((a.accounts.find(x => x.account_ref === acct.value) || {}).product_id); [...np.options].forEach(o => { if (o.value) { o.hidden = o.disabled = !!t && o.dataset.type !== t; } }); if (np.selectedOptions[0]?.disabled) np.value = ""; };
+    acct.onchange = sync; sync();
+  }
+  const sync = () => { form.querySelectorAll("[data-rm-ben]").forEach(b => b.disabled = form.querySelectorAll(".ben-row").length < 2); if (addBen) addBen.disabled = form.querySelectorAll(".ben-row").length >= 5; };
+  const wireBen = () => { form.querySelectorAll("[data-rm-ben]").forEach(b => b.onclick = () => { b.closest(".ben-row").remove(); sync(); }); sync(); };
+  if (addBen) { addBen.onclick = () => { $("#ben-rows").insertAdjacentHTML("beforeend", benRow(form.querySelectorAll(".ben-row").length + 1)); wireBen(); form.querySelector(".ben-row:last-child input").focus(); }; wireBen(); }
+  form.onsubmit = async (ev) => {
+    ev.preventDefault(); mErr("");
+    for (const el of form.querySelectorAll("[required]")) { if (!el.value.trim()) { mErr(`Fill in “${(el.closest("label")?.firstChild?.textContent || el.name).trim()}”.`); el.focus(); return; } }
+    const ssn = form.elements.ssn_last4;
+    if (ssn && !ssn.disabled && !/^\d{4}$/.test(ssn.value.trim())) { mErr("Enter exactly 4 digits. Only the last 4 digits of the SSN are needed."); ssn.focus(); return; }
+    const details = readMaint(form, mKind);
+    if (mKind === "beneficiary_change" && Math.round(details.beneficiaries.reduce((t, b) => t + b.share_pct, 0) * 100) !== 10000) { mErr("The shares must add up to 100%."); return; }
+    const btn = form.querySelector("button[type=submit]"); btn.disabled = true;
+    try {
+      await api(`/api/applications/${mCustomer}/maintenance`, { method: "POST", body: JSON.stringify({ kind: mKind, details, requested_by: form.elements.requested_by.value || null }) });
+      form.reset(); mKind = ""; await drawMaint(); mErr(""); $("#m-reqs").scrollIntoView({ block: "nearest" });
+    } catch (x) { btn.disabled = false; mErr(x.message); }
+  };
+}
+
+function reqLines(r) {
+  const d = r.details || {}, acct = (mApp().accounts || []).find(x => x.account_ref === r.account_ref);
+  const lines = [];
+  if (acct) lines.push(`Account: ${acct.product_name || "Account"} ending ${acct.account_last4}`);
+  switch (r.kind) {
+    case "contact_change": lines.push("Changing: " + Object.keys(d).filter(k => k !== "person_index" && k !== "target").map(k => k.replace(/_/g, " ")).join(", "));
+      if (d.target === "business") lines.push("For: the business");
+      else if (d.person_index != null && isBoth(mApp())) lines.push("For: " + (((mApp().applicant || {}).individuals || [])[d.person_index] || {}).full_name); break;
+    case "product_change": lines.push(`Move to: ${productName(d.new_product_id)}${d.term_months ? `, ${d.term_months} months` : ""}`); break;
+    case "beneficiary_change": lines.push(...d.beneficiaries.map(b => `${b.name} (${b.relationship}): ${b.share_pct}%`)); break;
+    case "signer_change": lines.push(`${d.action === "add" ? "Add" : "Remove"} signer: ${d.name}${d.title ? `, ${d.title}` : ""}`); break;
+    case "debit_card_order": lines.push("Reason: " + d.reason.replace(/_/g, " ")); break;
+    case "check_order": lines.push(`${d.quantity} ${d.style} checks`); break;
+    case "safe_deposit_box": lines.push(`${d.box_size} box at ${d.branch}`); break;
+    case "tax_id_change": lines.push("The new tax ID is kept as its last 4 digits only."); break;
+    default: lines.push(d.text);
+  }
+  return lines;
+}
+
+async function drawRequests(a) {
+  const box = $("#m-reqs");
+  try { mReqs = await api(`/api/applications/${a.id}/maintenance`); } catch (x) { box.innerHTML = `<p class="error">${esc(x.message)}</p>`; return; }
+  if (!mReqs.length) { box.innerHTML = `<p class="empty">No requests for this customer yet.</p>`; return; }
+  box.innerHTML = mReqs.map(r => {
+    const [cls, label] = M_STATUS[r.status] || ["t-warning", r.status];
+    return `<div class="box mreq"><div class="mreq-head"><b>${esc(MAINT_LABEL(r.kind))}</b><span class="tag ${cls}">${esc(label)}</span></div>
+      <ul class="lines">${reqLines(r).map(l => `<li><span>${esc(l)}</span></li>`).join("")}
+        <li><span>Asked ${esc(new Date(r.created_at).toLocaleString())}${r.requested_by ? ` by ${esc(staffName(r.requested_by))}` : ""}</span></li>
+        ${r.status === "completed" && r.kind !== "note" ? `<li><span>Sent to the core <span class="tag t-warning">Simulated</span></span></li>` : ""}
+        ${r.decided_at ? `<li><span>${r.status === "rejected" ? "Rejected" : "Approved"} ${esc(new Date(r.decided_at).toLocaleString())}${r.decided_by ? ` by ${esc(staffName(r.decided_by))}` : ""}${r.decision_note ? `: ${esc(r.decision_note)}` : ""}</span></li>` : ""}</ul>
+      ${r.status === "pending" ? `<div class="staff-add"><label>Note for the decision <small>optional</small><input data-note="${esc(r.id)}" maxlength="2000" autocomplete="off"></label>
+        <label>Decided by <small>sample staff, optional</small><select data-by="${esc(r.id)}"><option value="">Not recorded</option>${staff.map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("")}</select></label></div>
+        <div class="actions" style="margin:0"><button type="button" class="btn primary" data-decide="approve" data-id="${esc(r.id)}">Approve</button>
+        <button type="button" class="btn danger" data-decide="reject" data-id="${esc(r.id)}">Reject</button></div>` : ""}</div>`;
+  }).join("");
+  box.querySelectorAll("[data-decide]").forEach(b => b.onclick = async () => {
+    const id = b.dataset.id;
+    box.querySelectorAll("[data-decide]").forEach(x => x.disabled = true);
+    try {
+      await api(`/api/maintenance/${id}/decision`, { method: "POST", body: JSON.stringify({ decision: b.dataset.decide, decided_by: box.querySelector(`[data-by="${id}"]`).value || null, note: box.querySelector(`[data-note="${id}"]`).value || null }) });
+      mApps = (await api("/api/applications")).filter(x => x.final_decision === "approved" && (x.accounts || []).length);
+      await drawRequests(mApp()); mErr("");
+    } catch (x) { mErr(x.message); if (x.status === 409) await drawRequests(mApp()); else box.querySelectorAll("[data-decide]").forEach(y => y.disabled = false); }
+  });
+}
+
+// Shareable links: /#business, /#personal and /#both open straight to that application.
+function startFromLink() {
+  const t = location.hash.slice(1);
+  if (t === "business" || t === "personal" || t === "both") { show("apply"); startApplication(t, false); }
+}
+window.addEventListener("hashchange", startFromLink);
+startFromLink();
+
+let reviewerLogin = false;
+api("/api/health").then(h => {
+  reviewerLogin = !!h.reviewer_login;
+  $("#demo-banner").hidden = !(h.simulated || []).length;
+  if (h.in_browser) {
+    $("#demo-banner").hidden = false;
+    $("#demo-banner").classList.add("strong");
+    $("#demo-banner").textContent = "Demo running in your browser: please don't enter real business or personal information. " +
+      "What you enter stays on this device. Checks, signatures and accounts are simulated. Independent experimental project. Not for real-world account opening.";
+  } else if (!reviewerLogin) $("#demo-banner").textContent += " Reviewer pages are open to anyone (no reviewer password set).";
+  $("#mode").textContent = h.mode === "mock" ? "Mock mode" : "Middesk " + (h.middesk_base_url.includes("sandbox") ? "sandbox" : "live");
+}).catch(() => {});
+</script>
+</body>
+</html>
